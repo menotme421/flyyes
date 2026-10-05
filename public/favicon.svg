@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        
+		<defs>
+			
+				<filter id="shadow-0" x="-200%" y="-200%" width="500%" height="500%">
+					<feDropShadow
+						dx="0"
+						dy="0.36180904522613067"
+						stdDeviation="0.4824120603015076"
+						flood-color="#000000"
+						flood-opacity="0.18"
+					/>
+				</filter>
+			
+		</defs>
+        <g >
+            <rect width="100%" height="100%" fill="#ffffff" />
+			
+            <g transform="translate(256, 256) scale(16.583333333333332, 16.583333333333332) rotate(0) translate(-12, -12)" opacity="1" style="mix-blend-mode: normal" filter="url(#shadow-0)">
+			<title xmlns="http://www.w3.org/2000/svg" fill="#000000">mingcute:bird-fill</title>
+<path xmlns="http://www.w3.org/2000/svg" fill="#000000" d="M15 2a5 5 0 0 1 4.584 3H21a1 1 0 0 1 .832 1.555L20.28 8.883a1 1 0 0 0-.151.733l.14.774C21.275 15.914 17.03 21 11.415 21H3a1 1 0 0 1-.832-1.555l.991-1.486q.009-.016.019-.028l4.985-7.479l.009-.012l1.441-2.163A2.3 2.3 0 0 0 10 7a5 5 0 0 1 5-5m-2.5 8c-.818 0-2.044.393-2.5 1l-5 7.5c2.277-1.063 10-2 10-6a2.5 2.5 0 0 0-2.5-2.5M15 6a1 1 0 1 0 0 2a1 1 0 0 0 0-2"/>
+		</g>
+			
+        </g>
+    </svg>

@@ -1,0 +1,541 @@
+@import "tailwindcss";
+
+/* WHY: Stock shadcn default theme (zinc base, new-york style, oklch values).
+   Every UI component reads these tokens, so the whole app matches shadcn
+   defaults. Dark variant follows the OS setting (no toggle wired). */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.21 0.006 285.885);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.141 0.005 285.823);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.21 0.006 285.885);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.92 0.004 286.32);
+    --primary-foreground: oklch(0.21 0.006 285.885);
+    --secondary: oklch(0.274 0.006 286.033);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067);
+    --accent: oklch(0.274 0.006 286.033);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.552 0.016 285.938);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  /* WHY: Inter is the shadcn default typeface; system stack is the offline fallback. */
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* WHY: TipTap content needs Word-like defaults. Scoped to .tiptap so toolbar UI is unaffected. */
+.tiptap {
+  outline: none;
+  min-height: 60vh;
+  /* WHY: Long unbroken strings (URLs, hashes, stress-test Section 6) must
+     wrap inside paragraphs/headings instead of overflowing the page.
+     Cells get a stronger anywhere rule below. */
+  overflow-wrap: break-word;
+}
+.tiptap p {
+  margin: 0.25em 0;
+  line-height: 1.7;
+}
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  font-weight: 650;
+  line-height: 1.25;
+  margin: 1em 0 0.5em;
+}
+.tiptap h1 { font-size: 2em; }
+.tiptap h2 { font-size: 1.5em; }
+.tiptap h3 { font-size: 1.25em; }
+.tiptap h4 { font-size: 1.1em; }
+.tiptap h5 { font-size: 1em; }
+.tiptap h6 { font-size: 0.875em; color: var(--muted-foreground); }
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5rem;
+  margin: 0.25em 0;
+}
+/* WHY: Pasted Markdown often has blank lines between items ("loose" lists),
+   which wraps each item's text in its own <p>. Without this, every bullet
+   carries full paragraph margins and the list looks double-spaced
+   (screenshots 1-2). Nested lists also stop compounding outer margins. */
+.tiptap li > p,
+.tiptap li p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.tiptap li > ul,
+.tiptap li > ol {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.tiptap li {
+  margin: 0.15em 0;
+}
+.tiptap ul { list-style: disc; }
+.tiptap ol { list-style: decimal; }
+.tiptap blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+  /* WHY: Slimmer than the old 1em — nested quotes (stress Section 2 goes
+     4 deep) compound margins, and the border already signals the nesting. */
+  margin: 0.5em 0;
+}
+.tiptap code {
+  background: var(--muted);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.tiptap pre {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+.tiptap pre code {
+  background: transparent;
+  padding: 0;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+/* WHY: A blank line must read as ONE line, not two. An empty paragraph always
+   carries a <br> (editing needs the line box), and that line box blocks
+   margin collapsing — so an "empty" line rendered at line-height PLUS full
+   block margins (~1.6 lines tall, worse with pasted blank lines). Zeroing the
+   margins on truly-empty blocks makes one Enter = exactly one blank line in
+   edit, preview, and print alike. Explicit double breaks (<br><br>) keep
+   their margins and still read as two. */
+.tiptap p:has(> br:only-child),
+.tiptap p:empty,
+.tiptap h1:has(> br:only-child),
+.tiptap h2:has(> br:only-child),
+.tiptap h3:has(> br:only-child),
+.tiptap h4:has(> br:only-child),
+.tiptap h5:has(> br:only-child),
+.tiptap h6:has(> br:only-child) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* WHY: Edit-mode page keeps the preset's true portrait ratio.
+   --page-min-height is the CONTENT height, but Tailwind preflight sets
+   box-sizing: border-box globally, so a bare min-height would eat the
+   top/bottom padding out of it and the sheet would render ~pads px SHORT —
+   typing then stretches the page with no seam for ~2 lines before it snaps.
+   Adding the pads back makes the floor a true full sheet: constant height
+   from empty until the first break fires, exactly like Word. */
+.word-page .tiptap {
+  min-height: calc(var(--page-min-height, 1043px) + var(--page-pad-top, 40px) + var(--page-pad-bottom, 40px));
+  padding: var(--page-pad-top, 40px) var(--page-pad-right, 48px) var(--page-pad-bottom, 40px) var(--page-pad-left, 48px);
+}
+
+.page-sheet {
+  /* WHY: Aspect ratio comes inline from the preset (A4, Letter, Legal, A5,
+     landscape); print still resets it below so each sheet is one paper page. */
+  min-height: 60vh;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.page-sheet .tiptap {
+  min-height: 0;
+}
+.tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75em 0;
+  /* WHY: Content-driven widths (auto), NOT equal splits — a narrow ID column
+     stays narrow and a Details/Annotations column takes the rest, like Word's
+     autofit. (Fixed layout used to force equal columns, starving wide columns
+     and wrapping mid-word — screenshot 3.) Typing in a cell still wraps
+     instead of squeezing siblings thanks to the break-word rule on cells
+     below, and drag-resize keeps working via explicit col widths. */
+  table-layout: auto;
+}
+.tiptap th,
+.tiptap td {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.6em;
+  text-align: left;
+  /* WHY: Positioning context for the column-resize handle below. No visual
+     change on its own (no offsets) and no abspos children besides the handle. */
+  position: relative;
+  /* WHY: Long unbroken strings (URLs, pasted runs, CJK-adjacent code) must
+     wrap inside the cell instead of overflowing its border. break-word (NOT
+     anywhere): wraps at spaces first and only splits a word when it truly
+     cannot fit — anywhere was slicing words like "Annotations" mid-word in
+     narrow columns. Normal word/CJK breaks are still preferred. */
+  overflow-wrap: break-word;
+}
+/* WHY: Sheets stay white even in dark mode, where --border turns near-white
+   and gridlines would vanish on paper. Same @media mechanism as the theme
+   tokens above; light mode is untouched. Borderless tables still win via
+   higher specificity + transparent. */
+@media (prefers-color-scheme: dark) {
+  .tiptap th,
+  .tiptap td {
+    border-color: #d4d4d8;
+  }
+}
+/* WHY: Header cells must read as headers — without this th renders pixel-
+   identical to td, so toggling Header row/column appears to do nothing.
+   Word-style emphasis (bold + centered + light shading). The shading is what
+   makes headers visible even in EMPTY cells (bold/center need text to show).
+   Fixed light gray (not a theme token): sheets stay white in both modes.
+   An explicit cell fill still wins via inline style; text alignment set in a
+   cell wins the same way. Prints like Word does. */
+.tiptap th {
+  font-weight: 600;
+  text-align: center;
+  background-color: #f1f5f9;
+}
+/* WHY: Column drag-resize ships enabled (resizable: true) but the plugin only
+   renders a bare handle div — without this it is invisible and ungrabbable.
+   The handle hugs the right cell edge; the cursor style applies while
+   dragging. Wrapper scrolls instead of bleeding past the page on narrow
+   screens (unset for print so nothing clips on paper). */
+.tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 20;
+  background-color: var(--ring);
+  pointer-events: none;
+}
+.tiptap.resize-cursor,
+.tiptap.resize-cursor * {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
+.tiptap .tableWrapper {
+  overflow-x: auto;
+}
+/* WHY: Notion-style cell selection — a translucent tint, never a solid fill,
+   so selected cells read as selected without hiding content. A linear-gradient
+   background-IMAGE (not background-color) layers over any cell fill, including
+   inline data-cell-bg fills that would otherwise win and hide the selection. */
+.tiptap th.selectedCell,
+.tiptap td.selectedCell {
+  background-image: linear-gradient(rgba(37, 99, 235, 0.14), rgba(37, 99, 235, 0.14));
+}
+/* WHY: Phase B table properties (owned extension renders data attrs).
+   Borderless hides gridlines; non-left alignment needs auto width to be visible. */
+.tiptap table[data-table-borderless="true"],
+.tiptap table[data-table-borderless="true"] th,
+.tiptap table[data-table-borderless="true"] td {
+  border-color: transparent;
+}
+.tiptap table[data-table-align="center"] {
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tiptap table[data-table-align="right"] {
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+}
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+/* WHY: Drag-to-resize wrapper (owned ResizableImage node view). The handle
+   shows only on selection and never prints (no-print). */
+.resizable-image {
+  position: relative;
+  max-width: 100%;
+}
+.resizable-image.ProseMirror-selectednode {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.image-resize-handle {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.tiptap a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+/* WHY: Task lists (TaskList extension) — checkbox + text rows, Word-like
+   indent. data-checked drives the strikethrough, same as Markdown - [x]. */
+.tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+.tiptap li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.25em 0;
+}
+.tiptap li[data-type="taskItem"] > input[type="checkbox"] {
+  margin-top: 0.35em;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+.tiptap li[data-type="taskItem"][data-checked="true"] > div {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+/* WHY: Find-and-replace highlights (extension injects these classes).
+   Current match is orange like Word, others yellow. Screen only. */
+.tiptap .find-and-replace-result {
+  background-color: rgba(250, 204, 21, 0.5);
+  border-radius: 2px;
+}
+.tiptap .find-and-replace-result-current {
+  background-color: rgba(249, 115, 22, 0.6);
+  border-radius: 2px;
+}
+.tiptap hr {
+  border: none;
+  border-top: 2px dashed var(--border);
+  margin: 1.5em 0;
+}
+
+/* WHY: Manual page-break badge (pageBreakExtension renders HR as this instead
+   of a bare rule, so users can tell what the line means and remove it).
+   Screen only — print hides it via no-print while the spacer keeps the break. */
+.page-break-marker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 1.5em 0;
+  user-select: none;
+  cursor: default;
+}
+.page-break-line {
+  flex: 1;
+  border-top: 2px dashed var(--border);
+}
+.page-break-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted-foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 10px;
+  white-space: nowrap;
+}
+.page-break-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.page-break-remove:hover {
+  color: var(--foreground);
+  border-color: var(--ring);
+}
+
+/* WHY: Independent white sheets over one flat doc (block-push V1).
+   Each .page-spacer is view-only: white filler pads the page bottom so the
+   next block starts on a fresh sheet, then prev-page bottom margin, a
+   full-bleed gray gap, and next-page top margin — every sheet exactly
+   padTop + contentH + padBottom tall. The gap is flat (no borders/shadows)
+   and tinted to match the bg-muted/60 canvas so the seam blends in.
+   Screen only, never saved, never printed. */
+.page-spacer {
+  user-select: none;
+  cursor: default;
+}
+.page-filler,
+.page-sheet-pad {
+  background: #fff;
+}
+.page-gap-strip {
+  /* WHY: Bleeds 10px past the sheet on both sides so the seam covers the
+     sheet's own side edge — the gray then reads as canvas between separate
+     sheets instead of a bar inset inside one long box. Flat, no borders or
+     shadows: any edge decoration here redraws the "layered groove". */
+  margin-left: calc(-1 * var(--page-pad-left, 48px) - 10px);
+  margin-right: calc(-1 * var(--page-pad-right, 48px) - 10px);
+  background: var(--muted);
+  /* WHY: Must match the bg-muted/60 canvas exactly in every theme. Tailwind
+     builds bg-muted/60 as color-mix(in oklab, muted 60%, transparent), which
+     composites over the body background — the opaque equivalent below is
+     identical math (srgb would skew dark, as seen in dark mode). */
+  background: color-mix(in oklab, var(--muted) 60%, var(--background));
+  user-select: none;
+  cursor: default;
+}
+
+@page {
+  size: A4;
+  margin: 2.5cm 2cm;
+}
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* WHY: Safety net — any floating UI open when Print fires (menus, selects,
+     dialogs, popovers, tooltips, toasts all render in Radix portals) must
+     never appear on paper, even with the close-delay above. */
+  [data-radix-portal],
+  [data-sonner-toaster],
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  .page-gap-strip,
+  .page-filler,
+  .page-sheet-pad {
+    display: none !important;
+  }
+  /* WHY: Print follows the edit breaks: each spacer becomes a zero-height
+     forced page break (its filler/pads/gap stay hidden above). The tail never
+     forces a break, otherwise the document would end with a blank page.
+     Higher specificity than .no-print so spacers survive as breaks. */
+  .page-spacer.no-print {
+    display: block !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    break-after: page;
+  }
+  .page-spacer.no-print > * {
+    display: none !important;
+  }
+  .page-spacer.page-tail.no-print {
+    display: none !important;
+  }
+  /* WHY: A selection tint is screen UI, not document content — it must
+     never print even if the user hits Print mid-selection. Resize handles
+     and wrapper scrolling likewise stay on screen only. */
+  .tiptap th.selectedCell,
+  .tiptap td.selectedCell {
+    background-image: none !important;
+  }
+  /* WHY: Search highlights are screen UI — never print the yellow marks. */
+  .tiptap .find-and-replace-result,
+  .tiptap .find-and-replace-result-current {
+    background-color: transparent !important;
+  }
+  .tiptap .column-resize-handle {
+    display: none !important;
+  }
+  .tiptap .tableWrapper {
+    overflow: visible;
+  }
+  /* WHY: In print the @page rule (injected per document from its preset) owns
+     all four margins. The edit surface's own padding would stack on top of it
+     (double margins, narrower content, different line wraps → different
+     breaks). Zero it so print width/wraps match the 100% screen geometry;
+     min-height:0 lets the browser paginate naturally. */
+  .word-page {
+    max-width: none !important;
+  }
+  .word-page .tiptap {
+    min-height: 0;
+    padding: 0 !important;
+  }
+  .page-sheet {
+    aspect-ratio: auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none !important;
+    break-after: page;
+  }
+}

@@ -1,0 +1,12 @@
+# WHY: Cloudflare Pages does NOT send security headers by default — this file
+# is the entire story. Policy is minimal-but-sufficient for a local-first SPA:
+# same-origin scripts, inline styles (TipTap/Radix inject them at runtime),
+# Google Fonts stylesheet + files, data:/https: images (uploads are data URLs,
+# remote images embed by URL), https: fetches (DOCX export downloads remote
+# images; font preconns). No workers, no plugins, no framing. If you add a new
+# third-party (analytics, fonts, image host), its origin must be allow-listed
+# here or the browser will silently block it — test in preview after any change.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
