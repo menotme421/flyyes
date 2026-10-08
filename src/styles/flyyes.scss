@@ -107,11 +107,10 @@
 }
 
 .fly-ribbon {
-  // WHY: Full-bleed bar (user-approved zero edge padding) — first tool
-  // touches the left edge, overflow touches the right; vertical breathing
-  // only. Known 8px offset vs the title row above, accepted for the 100%
-  // full-layout look.
-  padding: spacing.$spacing-02 0;
+  // WHY: Same 8px side padding as the title row above, so undo aligns under
+  // the title and the overflow menu aligns under Export — balanced edges
+  // instead of tools glued to the screen sides.
+  padding: spacing.$spacing-02 spacing.$spacing-03;
 }
 
 .fly-ribbon-bar {
