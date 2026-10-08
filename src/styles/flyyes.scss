@@ -214,13 +214,19 @@
   align-items: center;
 }
 
-// WHY: Text-contrast lockup — pixel mark carries the brand weight, Docs
-// stays regular weight beside it (single-appTreatment; colored pills wait
-// until the second app ships). Absolute badge dropped: side-by-side with
-// weight contrast reads cleaner than a superscript corner tag.
+// WHY: Unified brand lockup, not browser-default text beside a logo — Docs
+// speaks the mark's language: IBM Plex Mono (uniform advance echoes the
+// pixel grid), tracked uppercase badge sizing, fixed 10px gap, optically
+// centered to the glyph mass. Uppercase is visual only; screen readers and
+// the accessible name still read "Docs".
 .fly-brand-docs {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
   font-weight: 400;
-  margin-left: spacing.$spacing-03;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-left: 10px;
+  transform: translateY(-1px);
 }
 
 // WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
