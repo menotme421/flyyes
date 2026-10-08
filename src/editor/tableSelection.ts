@@ -88,6 +88,25 @@ export function selectionDocRange(selection: Selection): { from: number; to: num
 }
 
 /**
+ * Is the selection inside a table (caret, cell range, or the table node
+ * itself)? Drives the contextual toolbar swap. Never throws.
+ */
+export function isSelectionInTable(selection: Selection): boolean {
+  try {
+    const maybe = selection as Selection & { node?: PMNode };
+    if (maybe.node && maybe.node.type.name === "table") return true;
+    for (const $pos of [selection.$anchor, selection.$head]) {
+      for (let depth = $pos.depth; depth > 0; depth--) {
+        if ($pos.node(depth).type.name === "table") return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Should a right-click at clickPos preserve (not collapse) the selection?
  * Word behavior: clicks inside a non-empty selection keep it (so Merge/Split
  * stay enabled); clicks outside move the caret.

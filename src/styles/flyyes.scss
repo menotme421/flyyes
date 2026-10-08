@@ -107,9 +107,11 @@
 }
 
 .fly-ribbon {
-  // WHY: Same 8px side padding as the title row above, so the title input
-  // and the toolbar start on the same vertical line.
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  // WHY: Full-bleed bar (user-approved zero edge padding) — first tool
+  // touches the left edge, overflow touches the right; vertical breathing
+  // only. Known 8px offset vs the title row above, accepted for the 100%
+  // full-layout look.
+  padding: spacing.$spacing-02 0;
 }
 
 .fly-ribbon-bar {
@@ -150,6 +152,32 @@
   border-left: 1px solid var(--border);
   padding-left: spacing.$spacing-02;
   background: transparent;
+}
+
+// WHY: Right-zone swap animation — slide in from the right + fade, 160ms
+// (within the 150-200ms motion budget) so the panel change reads without
+// feeling slow. key={context} remounts replays it per swap; reduced-motion
+// users get an instant swap instead.
+.fly-context-swap {
+  animation: fly-context-in 160ms ease;
+}
+
+@keyframes fly-context-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fly-context-swap {
+    animation: none;
+  }
 }
 
 .fly-statusbar {

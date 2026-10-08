@@ -1,18 +1,9 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import { useState } from "react";
 import {
-  Checkmark,
-  Code,
-  DocumentConfiguration,
-  Link,
   ListBulleted,
-  ListChecked,
   ListNumbered,
-  OverflowMenuVertical,
-  PageBreak,
-  Quotes,
   Redo,
-  Search,
   TextAlignCenter,
   TextAlignJustify,
   TextAlignLeft,
@@ -20,34 +11,34 @@ import {
   TextBold,
   TextClearFormat,
   TextHighlight,
-  TextIndentLess,
-  TextIndentMore,
   TextItalic,
-  TextStrikethrough,
-  TextSubscript,
-  TextSuperscript,
   TextUnderline,
   Undo,
 } from "@carbon/icons-react";
-import { Dropdown, IconButton, Popover, PopoverContent } from "@carbon/react";
+import { Dropdown, IconButton } from "@carbon/react";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, WORD_FONT_FAMILIES, WORD_FONT_SIZES } from "@/editor/editorExtensions";
 import { ColorPicker } from "@/components/ColorPicker";
-import { LayoutListMove } from "@/components/icons/layout-list-move";
-import { PageSetupDialog } from "@/components/PageSetupDialog";
-import { UrlDialog } from "@/components/UrlDialog";
-import { ZoomSelect } from "@/components/ZoomSelect";
 import type { ResolvedPageSetup } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
-import { ImageMenu, TableInsert } from "./InsertMenu";
+import { isHeaderRowActive, isSelectionInTable } from "./tableSelection";
+import {
+  DefaultSecondaryTools,
+  ImageContextTools,
+  LinkButton,
+  LinkContextTools,
+  TableContextTools,
+  ToolbarSeparator,
+  resolveToolbarContext,
+} from "./ContextTools";
 
-// WHY: Ribbon order — File, history, Insert + Link, Styles, Font essentials,
-// Paragraph essentials, Search, More overflow, Zoom right. Rarely-used tools
-// live in the More panel (Carbon text-toolbar overflow pattern) so the bar
-// never scrolls — scrolling would trap Carbon's floating menus inside it.
-// Sizing utilities stay on plain wrapper divs, never on Carbon roots
-// (Carbon's unlayered CSS beats Tailwind utilities on the same element).
+// WHY: Ribbon order — history, Styles, Font essentials, Paragraph essentials
+// left (core, always visible); the right cluster swaps by selection (see
+// ContextTools). Rarely-used tools live in the More panel (Carbon
+// text-toolbar overflow pattern) so the bar never scrolls — scrolling would
+// trap Carbon's floating menus inside it. Sizing utilities stay on plain
+// wrapper divs, never on Carbon roots (Carbon's unlayered CSS beats Tailwind
+// utilities on the same element).
 
-const LINE_SPACINGS = ["1.0", "1.15", "1.5", "2.0"] as const;
 // WHY: Unset state shows the real family with a (default) tag — "Font" alone
 // told the user nothing about what they were getting.
 const FONT_UNSET_LABEL = `${DEFAULT_FONT_FAMILY} (default)`;
@@ -130,20 +121,41 @@ export function EditorToolbar({
               (liveEditor.getAttributes("heading").indent as unknown) ??
               0
           ) > 0,
+        // WHY: Context drivers for the right-zone swap — computed in the same
+        // snapshot so core and context never disagree about the selection.
+        imageSelected: selectionNodeName(liveEditor) === "image" || liveEditor.isActive("image"),
+        inTable: isSelectionInTable(liveEditor.state.selection),
+        imageWidth: (liveEditor.getAttributes("image").width as number | null | undefined) ?? null,
+        canAddRowBefore: liveEditor.can().addRowBefore(),
+        canAddRowAfter: liveEditor.can().addRowAfter(),
+        canDeleteRow: liveEditor.can().deleteRow(),
+        canAddColumnBefore: liveEditor.can().addColumnBefore(),
+        canAddColumnAfter: liveEditor.can().addColumnAfter(),
+        canDeleteColumn: liveEditor.can().deleteColumn(),
+        canMergeCells: liveEditor.can().mergeCells(),
+        canSplitCell: liveEditor.can().splitCell(),
+        canToggleHeaderRow: liveEditor.can().toggleHeaderRow(),
+        canDeleteTable: liveEditor.can().deleteTable(),
+        headerRowOn: isHeaderRowActive(liveEditor.state.selection),
       };
     },
   });
   const currentFontFamily = toolbarState.fontFamily;
   const currentFontSize = toolbarState.fontSize;
   const previousLink = toolbarState.linkHref;
+  // WHY: The right zone earns its panel from the selection alone — the More
+  // button never triggers a swap (user decision). Priority lives in
+  // resolveToolbarContext so the rule is unit-tested, not eyeballed.
+  const context = resolveToolbarContext({
+    imageSelected: toolbarState.imageSelected,
+    inTable: toolbarState.inTable,
+    linkActive: toolbarState.link,
+  });
 
-  // WHY: One middle gap (no swapping yet) — Core holds every-paragraph
-  // tools so muscle memory never shifts; Secondary holds
-  // document/search/insert/advanced tools that will later swap by selection
-  // (image / table / link). Core sits left, Secondary pins right (see
-  // flyyes.scss) — the single gap absorbs leftover width. Page setup +
-  // Zoom still live in Secondary for this visual pass — they move to the
-  // title row on approval.
+  // WHY: Core row is always visible (every-paragraph tools, stable muscle
+  // memory); the right cluster swaps its panel by selection with a slide
+  // animation (see .fly-context-swap). Page setup + Zoom stay in the
+  // default panel for this pass — they move to the title row on approval.
   return (
     <div className="fly-ribbon flex items-stretch gap-0 bg-background">
       {/* 60% Core — every-paragraph formatting, always visible. */}
@@ -306,83 +318,38 @@ export function EditorToolbar({
         </div>
       </div>
 
-      {/* Secondary cluster pinned right — its left divider lives in CSS
+      {/* Right cluster pinned right — its left divider lives in CSS
           (.fly-ribbon-secondary) so it hugs the cluster; the margin-left
-          auto gap sits left of the divider. Later swaps by selection. */}
-      <div role="group" aria-label="Secondary tools, 40 percent" className="fly-ribbon-secondary flex min-w-0 flex-wrap items-center gap-0">
-        <div className="flex items-center gap-0">
-          <ToolbarButton title="Find and replace (Ctrl+F)" active={false} onClick={onSearchOpen}>
-            <Search />
-          </ToolbarButton>
-          <ToolbarButton title="Page setup (paper presets)" active={false} onClick={() => setPageSetupOpen(true)}>
-            <DocumentConfiguration />
-          </ToolbarButton>
-          <PageSetupDialog
-            open={pageSetupOpen}
-            onClose={() => setPageSetupOpen(false)}
-            initialPresetId={pageSetup.presetId}
-            initialOrientation={pageSetup.landscape ? "landscape" : "portrait"}
-            onSave={onPageSetupChange}
-          />
-          <div className="w-28 shrink-0">
-            <ZoomSelect zoomPercent={zoomPercent} onZoomChange={onZoomChange} />
-          </div>
-        </div>
-
-        <ToolbarSeparator />
-
-        <div className="flex items-center gap-0 [&>*]:shrink-0">
-          <ImageMenu editor={editor} />
-          <TableInsert editor={editor} />
-          <ToolbarButton title="Page break" active={false} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-            <PageBreak />
-          </ToolbarButton>
-        </div>
-
-        <ToolbarSeparator />
-
-        <div className="flex flex-wrap items-center gap-0 [&>*]:shrink-0">
-          <ToolbarButton title="Strikethrough" active={toolbarState.strike} onClick={() => editor.chain().focus().toggleStrike().run()}>
-            <TextStrikethrough />
-          </ToolbarButton>
-          <div className="fly-roomy-menu-md w-28">
-            <Dropdown
-              id="line-spacing"
-              titleText="Line spacing"
-              hideLabel
-              type="inline"
-              label="Spacing"
-              size="sm"
-              items={["1.7 (Default)", ...LINE_SPACINGS]}
-              selectedItem={toolbarState.lineHeight ?? "1.7 (Default)"}
-              renderSelectedItem={(item) => (
-                <span className="flex items-center gap-1.5">
-                  <LayoutListMove className="h-4 w-4 shrink-0" />
-                  <span>{item === "1.7 (Default)" ? "1.7" : item}</span>
-                </span>
-              )}
-              onChange={(data) => {
-                const spacing = data.selectedItem;
-                if (!spacing || spacing === "1.7 (Default)") editor.chain().focus().unsetLineHeight().run();
-                else editor.chain().focus().setLineHeight(spacing).run();
-              }}
+          auto gap sits left of the divider. Content swaps by selection. */}
+      <div
+        role="group"
+        aria-label={CONTEXT_LABELS[context]}
+        aria-live="polite"
+        className="fly-ribbon-secondary flex min-w-0 flex-wrap items-center gap-0"
+      >
+        {/* WHY: key remounts on context change so the slide animation
+            replays per swap (see .fly-context-swap). The More button never
+            triggers a swap — selection alone decides. */}
+        <div key={context} className="fly-context-swap flex min-w-0 flex-wrap items-center gap-0">
+          {context === "image" ? (
+            <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} />
+          ) : context === "table" ? (
+            <TableContextTools editor={editor} snapshot={toolbarState} />
+          ) : context === "link" ? (
+            <LinkContextTools editor={editor} snapshot={toolbarState} />
+          ) : (
+            <DefaultSecondaryTools
+              editor={editor}
+              snapshot={toolbarState}
+              pageSetup={pageSetup}
+              onPageSetupChange={onPageSetupChange}
+              pageSetupOpen={pageSetupOpen}
+              onPageSetupOpenChange={setPageSetupOpen}
+              zoomPercent={zoomPercent}
+              onZoomChange={onZoomChange}
+              onSearchOpen={onSearchOpen}
             />
-          </div>
-          <ToolbarButton title="Decrease indent" active={false} onClick={() => editor.commands.decreaseIndent()}>
-            <TextIndentLess />
-          </ToolbarButton>
-          <ToolbarButton title="Increase indent" active={toolbarState.indented} onClick={() => editor.commands.increaseIndent()}>
-            <TextIndentMore />
-          </ToolbarButton>
-          <ToolbarButton title="Task list" active={toolbarState.taskList} onClick={() => editor.chain().focus().toggleTaskList().run()}>
-            <ListChecked />
-          </ToolbarButton>
-        </div>
-        {/* WHY: Whole 40% cluster packs right (not just More) so the
-            zone finishes at the bar edge with no internal split — search
-            through More stay together as one group. */}
-        <div className="flex shrink-0 items-center">
-          <FormatOverflow editor={editor} toolbarState={toolbarState} />
+          )}
         </div>
       </div>
     </div>
@@ -404,149 +371,24 @@ function ToolbarButton({ title, active, onClick, children }: {
   );
 }
 
-// WHY: Link promoted out of Insert into its own toolbar button (most-used
-// insert by far). Same dialog + validation as before, just one click away.
-function LinkButton({ editor, linkActive, selectionEmpty, previousLinkHref }: {
-  editor: Editor;
-  linkActive: boolean;
-  selectionEmpty: boolean;
-  previousLinkHref?: string;
-}) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  return (
-    <>
-      <ToolbarButton title="Link…" active={linkActive} onClick={() => setDialogOpen(true)}>
-        <Link />
-      </ToolbarButton>
-      <UrlDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        title="Insert link"
-        description={
-          selectionEmpty
-            ? "No text selected — the link will be inserted at the cursor."
-            : "Link the selected text."
-        }
-        placeholder="https://…"
-        initialValue={previousLinkHref ?? ""}
-        submitLabel={selectionEmpty ? "Insert link" : "Apply link"}
-        allowEmpty
-        showRemove={linkActive}
-        removeLabel="Remove link"
-        onRemove={() => editor.chain().focus().unsetLink().run()}
-        validate={(url) => {
-          if (url === "") {
-            return selectionEmpty ? "Type or paste a link first." : null;
-          }
-          return /^https?:\/\/|^mailto:/i.test(url)
-            ? null
-            : "Only https:// and mailto: links are allowed.";
-        }}
-        onSubmit={(url) => {
-          if (url === "") {
-            editor.chain().focus().unsetLink().run();
-            return;
-          }
-          if (selectionEmpty) {
-            // WHY: Collapsed caret can't hold a mark visibly — insert the URL
-            // as linked text (Word behavior) instead of silently arming
-            // link-on-type, which confused everyone.
-            editor
-              .chain()
-              .focus()
-              .insertContent({ type: "text", text: url, marks: [{ type: "link", attrs: { href: url } }] })
-              .run();
-          } else {
-            editor.chain().focus().setLink({ href: url }).run();
-          }
-        }}
-      />
-    </>
-  );
-}
+// WHY: Screen-reader labels for the swapping right cluster — announced via
+// the zone's aria-live so the context change is perceivable, not just visual.
+const CONTEXT_LABELS = {
+  default: "Secondary tools",
+  image: "Image tools",
+  table: "Table tools",
+  link: "Link tools",
+} as const;
 
-// WHY: Overflow holds only the specialists — character modifiers
-// (sub/superscript) and block containers (quote, code). Everything else
-// earned a ribbon slot, so this panel stays short.
-function FormatOverflow({ editor, toolbarState }: {
-  editor: Editor;
-  toolbarState: {
-    subscript: boolean;
-    superscript: boolean;
-    blockquote: boolean;
-    codeBlock: boolean;
-  };
-}) {
-  const [open, setOpen] = useState(false);
-
-  function closeAnd(run: () => void): () => void {
-    return () => {
-      run();
-      setOpen(false);
+// WHY: NodeSelection (image click) carries the node; a text caret does not.
+// Duck-typed so a destroyed-view proxy can never throw out of the snapshot.
+function selectionNodeName(liveEditor: Editor): string | null {
+  try {
+    const selection = liveEditor.state.selection as unknown as {
+      node?: { type?: { name?: string } };
     };
+    return selection.node?.type?.name ?? null;
+  } catch {
+    return null;
   }
-
-  return (
-    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-end" caret>
-      <IconButton
-        kind="ghost"
-        size="sm"
-        label="More formatting"
-        align="bottom"
-        onClick={() => setOpen((currently) => !currently)}
-      >
-        <OverflowMenuVertical />
-      </IconButton>
-      <PopoverContent className="fly-popover-panel w-64">
-        <OverflowRow
-          icon={<TextSubscript />}
-          label="Subscript"
-          checked={toolbarState.subscript}
-          onClick={closeAnd(() => editor.chain().focus().toggleSubscript().run())}
-        />
-        <OverflowRow
-          icon={<TextSuperscript />}
-          label="Superscript"
-          checked={toolbarState.superscript}
-          onClick={closeAnd(() => editor.chain().focus().toggleSuperscript().run())}
-        />
-        <OverflowRow
-          icon={<Quotes />}
-          label="Quote"
-          checked={toolbarState.blockquote}
-          onClick={closeAnd(() => editor.chain().focus().toggleBlockquote().run())}
-        />
-        <OverflowRow
-          icon={<Code />}
-          label="Code block"
-          checked={toolbarState.codeBlock}
-          onClick={closeAnd(() => editor.chain().focus().toggleCodeBlock().run())}
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function OverflowRow({ icon, label, checked, onClick }: {
-  icon: React.ReactNode;
-  label: string;
-  checked?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={checked}
-      className="fly-menu-row text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-    >
-      <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
-      <span className="flex-1 text-left">{label}</span>
-      {checked ? <Checkmark aria-label="On" /> : null}
-    </button>
-  );
-}
-
-function ToolbarSeparator() {
-  return <div aria-hidden="true" className="fly-separator" />;
 }
