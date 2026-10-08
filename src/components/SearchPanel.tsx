@@ -127,7 +127,7 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
         <Button
           kind="tertiary"
           size="sm"
-          className="flex-1"
+          className="fly-panel-btn flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replace()}
         >
@@ -136,7 +136,7 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
         <Button
           kind="tertiary"
           size="sm"
-          className="flex-1"
+          className="fly-panel-btn flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replaceAll()}
         >

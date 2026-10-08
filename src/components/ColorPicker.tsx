@@ -316,7 +316,7 @@ export function ColorPicker({ title, value, onSelect, children, onClear, clearLa
         <p className="cds--type-label-02 fly-section-label text-muted-foreground">{title}</p>
         <ColorPickerBody value={value} onSelect={onSelect} />
         {onClear ? (
-          <Button kind="ghost" size="sm" onClick={() => { onClear(); setOpen(false); }}>
+          <Button kind="ghost" size="sm" className="fly-panel-btn" onClick={() => { onClear(); setOpen(false); }}>
             {clearLabel ?? "Clear"}
           </Button>
         ) : null}

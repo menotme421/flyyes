@@ -237,6 +237,17 @@
   padding: spacing.$spacing-02 spacing.$spacing-03;
 }
 
+// WHY: Carbon reserves triple trailing padding on ghost/tertiary buttons
+// (room for a trailing icon they don't all have) — a text-only button like
+// "Replace all" gets ~63px of dead padding and its label wraps. This
+// restores symmetric padding + no wrap. Double class wins regardless of
+// stylesheet order.
+.cds--btn.fly-panel-btn {
+  padding-inline-start: spacing.$spacing-03;
+  padding-inline-end: spacing.$spacing-03;
+  white-space: nowrap;
+}
+
 .fly-menu-divider {
   height: 1px;
   margin-block: spacing.$spacing-02;

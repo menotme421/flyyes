@@ -129,8 +129,10 @@ export interface OverflowBarGroup {
 
 function BarToolButton({ tool }: { tool: OverflowBarTool }) {
   if (tool.variant === "text") {
+    // WHY: fly-panel-btn (see flyyes.scss) — Carbon's triple trailing
+    // padding would unbalance these short preset labels.
     return (
-      <Button kind="ghost" size="sm" isSelected={tool.active} disabled={tool.disabled} onClick={tool.run}>
+      <Button kind="ghost" size="sm" className="fly-panel-btn" isSelected={tool.active} disabled={tool.disabled} onClick={tool.run}>
         {tool.label}
       </Button>
     );
