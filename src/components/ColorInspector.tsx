@@ -24,7 +24,7 @@ export function ColorInspector({ selectedHex, h, s, l, rgb, hsv, cmyk, ratioWhit
       <div className="flex items-center gap-2">
         <span
           aria-hidden="true"
-          className="h-8 w-8 rounded border border-border"
+          className="fly-swatch h-8 w-8 rounded border-border"
           style={{ backgroundColor: selectedHex }}
         />
         <div className="flex flex-col">
@@ -65,7 +65,7 @@ export function ColorInspector({ selectedHex, h, s, l, rgb, hsv, cmyk, ratioWhit
                     type="button"
                     title={hex}
                     aria-label={`Apply ${harmony.label.toLowerCase()} ${hex}`}
-                    className="h-6 w-6 rounded border border-border"
+                    className="fly-swatch h-6 w-6 rounded border-border"
                     style={{ backgroundColor: hex }}
                     onClick={() => onSelect(hex)}
                   />
@@ -87,7 +87,7 @@ function ContrastRow({ label, ratio }: { label: string; ratio: number }) {
       <span className="flex items-center gap-1.5 font-mono">
         {ratio.toFixed(2)}
         <span
-          className={`rounded border px-1 text-[10px] font-semibold ${
+          className={`fly-badge rounded text-[10px] font-semibold ${
             tag === "AAA"
               ? "border-primary bg-primary text-primary-foreground"
               : tag === "AA"

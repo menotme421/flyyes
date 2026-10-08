@@ -1,37 +1,19 @@
 import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { Check, ImagePlus, Link2, Plus, SeparatorHorizontal, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { Image, Table, Upload } from "@carbon/icons-react";
+import { IconButton, Popover, PopoverContent } from "@carbon/react";
 import { fileToCompressedDataUrl } from "@/services/imageService";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/toast";
 import { UrlDialog } from "@/components/UrlDialog";
 import { TableGridPicker } from "./TableGridPicker";
 
-// WHY: One text-labeled Insert menu (Plus + "Insert") replacing four ribbon
-// slots — link, image URL, upload, page break, and the table grid picker
-// inline (no flyout needed). Controlled open state so the grid can close the
-// menu on insert.
-// Upload fires the hidden file input inside the item-select gesture so the
-// browser file dialog is never blocked. Dialogs live here with their openers.
+// WHY: Insert zone split into focused one-job buttons (no grab-bag menu):
+// ImageMenu (URL or upload) and TableInsert (grid picker). Upload fires the
+// hidden file input inside the click gesture so the browser file dialog is
+// never blocked. Dialogs live here with their openers.
 
-interface InsertMenuProperties {
-  editor: Editor;
-  linkActive: boolean;
-  selectionEmpty: boolean;
-  previousLinkHref?: string;
-}
-
-export function InsertMenu({ editor, linkActive, selectionEmpty, previousLinkHref }: InsertMenuProperties) {
+export function ImageMenu({ editor }: { editor: Editor }) {
   const [open, setOpen] = useState(false);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const fileInputReference = useRef<HTMLInputElement>(null);
 
@@ -57,45 +39,45 @@ export function InsertMenu({ editor, linkActive, selectionEmpty, previousLinkHre
 
   return (
     <>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label="Insert">
-            <Plus /> Insert
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64">
-          <DropdownMenuLabel>Insert</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setLinkDialogOpen(true)}>
-            <Link2 className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1">Link…</span>
-            {linkActive ? <Check className="h-4 w-4" /> : null}
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setImageDialogOpen(true)}>
-            <ImagePlus className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1">Image from URL…</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => fileInputReference.current?.click()}>
-            <Upload className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1">Upload image…</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => editor.chain().focus().setHorizontalRule().run()}>
-            <SeparatorHorizontal className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1">Page break</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <div className="px-2 py-1.5">
-            <p className="mb-2 text-xs font-semibold text-muted-foreground">Table</p>
-            <TableGridPicker
-              onSelect={(cols, rows) => {
-                // WHY: Plain tables by default — header row is opt-in via the table menu.
-                editor.chain().focus().insertTable({ rows, cols, withHeaderRow: false }).run();
-                setOpen(false);
-              }}
-            />
-          </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
+        <IconButton
+          kind="ghost"
+          size="sm"
+          label="Insert image"
+          align="bottom"
+          onClick={() => setOpen((currently) => !currently)}
+        >
+          <Image />
+        </IconButton>
+        <PopoverContent className="fly-popover-panel w-56">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              setImageDialogOpen(true);
+            }}
+            className="fly-menu-row text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">
+              <Image />
+            </span>
+            <span className="flex-1 text-left">Image from URL…</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              fileInputReference.current?.click();
+            }}
+            className="fly-menu-row text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">
+              <Upload />
+            </span>
+            <span className="flex-1 text-left">Upload image…</span>
+          </button>
+        </PopoverContent>
+      </Popover>
       <input
         ref={fileInputReference}
         type="file"
@@ -103,49 +85,6 @@ export function InsertMenu({ editor, linkActive, selectionEmpty, previousLinkHre
         aria-label="Upload image from device"
         className="hidden"
         onChange={(event) => void handleImageUpload(event)}
-      />
-      <UrlDialog
-        open={linkDialogOpen}
-        onClose={() => setLinkDialogOpen(false)}
-        title="Insert link"
-        description={
-          selectionEmpty
-            ? "No text selected — the link will be inserted at the cursor."
-            : "Link the selected text."
-        }
-        placeholder="https://…"
-        initialValue={previousLinkHref ?? ""}
-        submitLabel={selectionEmpty ? "Insert link" : "Apply link"}
-        allowEmpty
-        showRemove={linkActive}
-        removeLabel="Remove link"
-        onRemove={() => editor.chain().focus().unsetLink().run()}
-        validate={(url) => {
-          if (url === "") {
-            return selectionEmpty ? "Type or paste a link first." : null;
-          }
-          return /^https?:\/\/|^mailto:/i.test(url)
-            ? null
-            : "Only https:// and mailto: links are allowed.";
-        }}
-        onSubmit={(url) => {
-          if (url === "") {
-            editor.chain().focus().unsetLink().run();
-            return;
-          }
-          if (selectionEmpty) {
-            // WHY: Collapsed caret can't hold a mark visibly — insert the URL
-            // as linked text (Word behavior) instead of silently arming
-            // link-on-type, which confused everyone.
-            editor
-              .chain()
-              .focus()
-              .insertContent({ type: "text", text: url, marks: [{ type: "link", attrs: { href: url } }] })
-              .run();
-          } else {
-            editor.chain().focus().setLink({ href: url }).run();
-          }
-        }}
       />
       <UrlDialog
         open={imageDialogOpen}
@@ -158,5 +97,32 @@ export function InsertMenu({ editor, linkActive, selectionEmpty, previousLinkHre
         onSubmit={(url) => editor.chain().focus().setImage({ src: url }).run()}
       />
     </>
+  );
+}
+
+export function TableInsert({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
+      <IconButton
+        kind="ghost"
+        size="sm"
+        label="Insert table"
+        align="bottom"
+        onClick={() => setOpen((currently) => !currently)}
+      >
+        <Table />
+      </IconButton>
+      <PopoverContent className="fly-submenu-panel max-h-[80vh] overflow-y-auto">
+        <TableGridPicker
+          onSelect={(cols, rows) => {
+            // WHY: Plain tables by default — header row is opt-in via the table menu.
+            editor.chain().focus().insertTable({ rows, cols, withHeaderRow: false }).run();
+            setOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -20,7 +20,6 @@ import { StatusBar } from "@/components/StatusBar";
 interface DocumentEditorProperties {
   documentId: string;
   initialContentJson: string;
-  editableTitle: string;
   zoomPercent: number;
   onZoomChange: (nextZoom: number) => void;
   pageSetup: ResolvedPageSetup;
@@ -33,7 +32,6 @@ interface DocumentEditorProperties {
 export function DocumentEditor({
   documentId,
   initialContentJson,
-  editableTitle,
   zoomPercent,
   onZoomChange,
   pageSetup,
@@ -44,10 +42,8 @@ export function DocumentEditor({
 }: DocumentEditorProperties) {
   // WHY: useMemo so extensions aren't recreated each render (would reset editor).
   const extensions = useMemo(() => createWordExtensions(), []);
-  // WHY: Local live copy feeds the toolbar Export menu instantly,
-  // while parent still gets onSaved for preview/status (no stale exports).
-  const [liveJson, setLiveJson] = useState(initialContentJson);
-  const [liveHtml, setLiveHtml] = useState("");
+  // WHY: Local live copy feeds onSaved for preview/status.
+  const [, setLiveHtml] = useState("");
   // WHY: Search panel visibility lives here (owns the editor instance).
   // Ctrl+F is captured at window level so it works from anywhere in the doc.
   const [searchOpen, setSearchOpen] = useState(false);
@@ -72,7 +68,6 @@ export function DocumentEditor({
           updatedEditor.getJSON(),
           updatedEditor.getHTML(),
           (freshJson, freshHtml) => {
-            setLiveJson(freshJson);
             setLiveHtml(freshHtml);
             onSaved(freshJson, freshHtml);
           },
@@ -183,7 +178,7 @@ export function DocumentEditor({
   }, []);
 
   if (!editor) {
-    return <p className="p-6 text-sm text-muted-foreground">Loading editor…</p>;
+    return <p className="cds--type-body-01 fly-pad-06 text-muted-foreground">Loading editor…</p>;
   }
 
   return (
@@ -194,13 +189,9 @@ export function DocumentEditor({
           --editor-bar-top offset, tucked 1px under so fractional header
           heights never open a slit that scrolled content bleeds through)
           so formatting stays reachable on page 10. */}
-      <div className="no-print sticky top-[calc(var(--editor-bar-top,53px)-1px)] z-10 rounded-none border-b border-border bg-background px-3 py-2 [&>div]:rounded-none [&>div]:border-0 [&>div]:p-1">
+      <div className="fly-ribbon-bar no-print sticky top-[calc(var(--editor-bar-top,53px)-1px)] z-10 rounded-none bg-background">
         <EditorToolbar
           editor={editor}
-          exportTitle={editableTitle}
-          exportJson={liveJson}
-          exportHtml={liveHtml || editor.getHTML()}
-          onExportError={onError}
           pageSetup={pageSetup}
           onPageSetupChange={onPageSetupChange}
           zoomPercent={zoomPercent}
@@ -215,7 +206,7 @@ export function DocumentEditor({
           Sheets read as separate pages because each seam bleeds past the
           sheet edges (see .page-gap-strip). overflow-x-clip keeps that bleed
           from ever causing a horizontal scrollbar when zoomed. */}
-      <div className="flex flex-1 justify-center overflow-x-clip bg-muted/60 p-6 print:bg-white print:p-0">
+      <div className="fly-preview-wrap flex flex-1 justify-center overflow-x-clip bg-muted/60 print:bg-white">
         {/* WHY: Relative anchor for the floating SearchPanel (absolute right). */}
         <div
           className="word-page relative h-fit w-full bg-white text-black"

@@ -1,6 +1,6 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-export const LayoutListMove = createLucideIcon("layout-list-move", [
+export const LayoutListMove = createSvgIcon("layout-list-move", [
   ["path",{"d":"M10 7 6 3 2 7","key":"1ozkjg"}],
   ["path",{"d":"M14 15.5h6.5","key":"tdip60"}],
   ["path",{"d":"M14 21h7","key":"1uq7qd"}],

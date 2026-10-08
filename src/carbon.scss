@@ -1,0 +1,15 @@
+// WHY: IBM Carbon foundation (Phase 1). Full Carbon styles via Dart Sass —
+// components, grid, themes, type, and the CSS reset. Imported BEFORE
+// index.css in main.tsx so the existing Tailwind tokens/utilities keep
+// winning conflicts until the later removal phase.
+// $font-path matches the official Carbon + Vite example so Plex resolves
+// from the installed @ibm/plex package (bundled locally, works offline).
+@use "@carbon/react" with (
+  $font-path: "@ibm/plex"
+);
+
+// WHY: The full build does NOT emit type utility classes — emit them so text
+// can use .cds--type-{token} (label-01, body-compact-01, …). Unlayered, so
+// they beat both Carbon element styles (h3) and Tailwind text utilities.
+@use "@carbon/react/scss/type" as carbon-type;
+@include carbon-type.type-classes();

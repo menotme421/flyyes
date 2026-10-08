@@ -1,36 +1,23 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useEditorState, type Editor } from "@tiptap/react";
-import { LayoutTemplate, PaintBucket, Trash } from "lucide-react";
-import {
-  ContextMenu,
-  ContextMenuCheckboxItem,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuRadioGroup,
-  ContextMenuRadioItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+import { TrashCan } from "@carbon/icons-react";
+import { Menu, MenuItem, MenuItemDivider, MenuItemGroup, MenuItemRadioGroup, MenuItemSelectable } from "@carbon/react";
 import { ColorPickerDialog } from "@/components/ColorPicker";
-import { SheetCells } from "@/components/icons/sheet-cells";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
-import { SheetColumns } from "@/components/icons/sheet-columns";
 import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
-import { SheetRows } from "@/components/icons/sheet-rows";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
 import { normalizeTableAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, shouldPreserveSelection } from "./tableSelection";
 
-// WHY: Stock shadcn context menu — only ui/* primitives, no custom menu CSS.
-// Top level stays short (Rows, Columns, Cells, Fill, Style, Delete); details
-// live one level down in flyout submenus. Outside tables the native browser
-// menu is untouched (spellcheck etc. keep working).
+// WHY: Carbon Menu with grouped sections — Carbon menus have no flyout
+// submenus, so the old Rows/Columns/Cells/Fill/Style flyouts become labeled
+// groups in one panel. Outside tables the native browser menu is untouched
+// (spellcheck etc. keep working). Rendered in a body portal so page sheets
+// (overflow hidden) can never clip it.
 
 // DOM-free check so the rule is unit-testable with fake targets.
 export function eventTargetInTable(target: unknown): boolean {
@@ -149,153 +136,165 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
   });
   const { bordersOn, alignment, headerOn, headerColumnOn } = menuState;
   const [customFillOpen, setCustomFillOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+  // WHY: Every action closes the menu — a controlled Carbon Menu stays open
+  // until told otherwise (unlike Radix, which closes on select).
+  function runAndClose(run: () => void): () => void {
+    return () => {
+      run();
+      setMenuOpen(false);
+    };
+  }
 
   return (
     <>
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-52">
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <SheetRows className="h-4 w-4 text-muted-foreground" aria-hidden />
-            Rows
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            <ContextMenuItem disabled={!menuState.canAddRowBefore} onSelect={() => editor.chain().focus().addRowBefore().run()}>
-              <SheetRowAbove className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Row above
-            </ContextMenuItem>
-            <ContextMenuItem disabled={!menuState.canAddRowAfter} onSelect={() => editor.chain().focus().addRowAfter().run()}>
-              <SheetRowBelow className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Row below
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem disabled={!menuState.canDeleteRow} onSelect={() => editor.chain().focus().deleteRow().run()}>
-              <Trash className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Delete row
-            </ContextMenuItem>
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <SheetColumns className="h-4 w-4 text-muted-foreground" aria-hidden />
-            Columns
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            <ContextMenuItem disabled={!menuState.canAddColumnBefore} onSelect={() => editor.chain().focus().addColumnBefore().run()}>
-              <SheetColumnLeft className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Column left
-            </ContextMenuItem>
-            <ContextMenuItem disabled={!menuState.canAddColumnAfter} onSelect={() => editor.chain().focus().addColumnAfter().run()}>
-              <SheetColumnRight className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Column right
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem disabled={!menuState.canDeleteColumn} onSelect={() => editor.chain().focus().deleteColumn().run()}>
-              <Trash className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Delete column
-            </ContextMenuItem>
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <SheetCells className="h-4 w-4 text-muted-foreground" aria-hidden />
-            Cells
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            <ContextMenuItem disabled={!menuState.canMergeCells} onSelect={() => editor.chain().focus().mergeCells().run()}>
-              <TableCellsMergeIcon className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Merge cells
-            </ContextMenuItem>
-            <ContextMenuItem disabled={!menuState.canSplitCell} onSelect={() => editor.chain().focus().splitCell().run()}>
-              <TableCellsSplitIcon className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Split cell
-            </ContextMenuItem>
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <PaintBucket className="h-4 w-4 text-muted-foreground" aria-hidden />
-            Fill
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            {CELL_FILL_SWATCHES.map((swatch) => (
-              <ContextMenuItem
-                key={swatch.value}
-                onSelect={() =>
-                  editor.chain().focus().setCellAttribute("backgroundColor", swatch.value).run()
-                }
-              >
-                <span
-                  aria-hidden="true"
-                  className="h-4 w-4 rounded border border-border"
-                  style={{ backgroundColor: swatch.value }}
+      <div
+        onContextMenu={(event) => {
+          if (!eventTargetInTable(event.target)) return;
+          event.preventDefault();
+          setMenuPosition({ x: event.clientX, y: event.clientY });
+          setMenuOpen(true);
+        }}
+      >
+        {children}
+      </div>
+      {menuOpen
+        ? createPortal(
+            <Menu
+              open
+              label="Table"
+              x={menuPosition.x}
+              y={menuPosition.y}
+              onClose={() => setMenuOpen(false)}
+            >
+              <MenuItemGroup label="Rows">
+                <MenuItem
+                  label="Row above"
+                  renderIcon={SheetRowAbove}
+                  disabled={!menuState.canAddRowBefore}
+                  onClick={runAndClose(() => editor.chain().focus().addRowBefore().run())}
                 />
-                {swatch.name}
-              </ContextMenuItem>
-            ))}
-            <ContextMenuItem onSelect={() => setCustomFillOpen(true)}>
-              Custom…
-            </ContextMenuItem>
-            <ContextMenuItem
-              onSelect={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
-            >
-              No fill
-            </ContextMenuItem>
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <LayoutTemplate className="h-4 w-4 text-muted-foreground" aria-hidden />
-            Style
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            <ContextMenuCheckboxItem
-              checked={headerOn}
-              disabled={!menuState.canToggleHeaderRow}
-              onCheckedChange={() => editor.chain().focus().toggleHeaderRow().run()}
-            >
-              Header row
-            </ContextMenuCheckboxItem>
-            <ContextMenuCheckboxItem
-              checked={headerColumnOn}
-              disabled={!menuState.canToggleHeaderColumn}
-              onCheckedChange={() => editor.chain().focus().toggleHeaderColumn().run()}
-            >
-              Header column
-            </ContextMenuCheckboxItem>
-            <ContextMenuCheckboxItem
-              checked={bordersOn}
-              onCheckedChange={() =>
-                editor.chain().focus().updateAttributes("table", { borderless: bordersOn }).run()
-              }
-            >
-              Borders
-            </ContextMenuCheckboxItem>
-            <ContextMenuSeparator />
-            <ContextMenuRadioGroup
-              value={alignment}
-              onValueChange={(value) => {
-                const next = normalizeTableAlignment(value) ?? "left";
-                editor.chain().focus().updateAttributes("table", { tableAlignment: next === "left" ? null : next }).run();
-              }}
-            >
-              <ContextMenuRadioItem value="left">Align left</ContextMenuRadioItem>
-              <ContextMenuRadioItem value="center">Align center</ContextMenuRadioItem>
-              <ContextMenuRadioItem value="right">Align right</ContextMenuRadioItem>
-            </ContextMenuRadioGroup>
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-        <ContextMenuSeparator />
-        <ContextMenuItem
-          disabled={!menuState.canDeleteTable}
-          onSelect={() => editor.chain().focus().deleteTable().run()}
-        >
-          <Trash className="h-4 w-4 text-muted-foreground" aria-hidden />
-          Delete table
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+                <MenuItem
+                  label="Row below"
+                  renderIcon={SheetRowBelow}
+                  disabled={!menuState.canAddRowAfter}
+                  onClick={runAndClose(() => editor.chain().focus().addRowAfter().run())}
+                />
+                <MenuItem
+                  label="Delete row"
+                  renderIcon={TrashCan}
+                  disabled={!menuState.canDeleteRow}
+                  onClick={runAndClose(() => editor.chain().focus().deleteRow().run())}
+                />
+              </MenuItemGroup>
+              <MenuItemGroup label="Columns">
+                <MenuItem
+                  label="Column left"
+                  renderIcon={SheetColumnLeft}
+                  disabled={!menuState.canAddColumnBefore}
+                  onClick={runAndClose(() => editor.chain().focus().addColumnBefore().run())}
+                />
+                <MenuItem
+                  label="Column right"
+                  renderIcon={SheetColumnRight}
+                  disabled={!menuState.canAddColumnAfter}
+                  onClick={runAndClose(() => editor.chain().focus().addColumnAfter().run())}
+                />
+                <MenuItem
+                  label="Delete column"
+                  renderIcon={TrashCan}
+                  disabled={!menuState.canDeleteColumn}
+                  onClick={runAndClose(() => editor.chain().focus().deleteColumn().run())}
+                />
+              </MenuItemGroup>
+              <MenuItemGroup label="Cells">
+                <MenuItem
+                  label="Merge cells"
+                  renderIcon={TableCellsMergeIcon}
+                  disabled={!menuState.canMergeCells}
+                  onClick={runAndClose(() => editor.chain().focus().mergeCells().run())}
+                />
+                <MenuItem
+                  label="Split cell"
+                  renderIcon={TableCellsSplitIcon}
+                  disabled={!menuState.canSplitCell}
+                  onClick={runAndClose(() => editor.chain().focus().splitCell().run())}
+                />
+              </MenuItemGroup>
+              <MenuItemGroup label="Fill">
+                {CELL_FILL_SWATCHES.map((swatch) => (
+                  <MenuItem
+                    key={swatch.value}
+                    label={swatch.name}
+                    renderIcon={() => (
+                      <span
+                        aria-hidden="true"
+                        className="fly-swatch h-4 w-4 rounded"
+                        style={{ backgroundColor: swatch.value }}
+                      />
+                    )}
+                    onClick={runAndClose(() =>
+                      editor.chain().focus().setCellAttribute("backgroundColor", swatch.value).run()
+                    )}
+                  />
+                ))}
+                <MenuItem label="Custom…" onClick={runAndClose(() => setCustomFillOpen(true))} />
+                <MenuItem
+                  label="No fill"
+                  onClick={runAndClose(() =>
+                    editor.chain().focus().setCellAttribute("backgroundColor", null).run()
+                  )}
+                />
+              </MenuItemGroup>
+              <MenuItemGroup label="Style">
+                <MenuItemSelectable
+                  label="Header row"
+                  selected={headerOn}
+                  disabled={!menuState.canToggleHeaderRow}
+                  onChange={runAndClose(() => editor.chain().focus().toggleHeaderRow().run())}
+                />
+                <MenuItemSelectable
+                  label="Header column"
+                  selected={headerColumnOn}
+                  disabled={!menuState.canToggleHeaderColumn}
+                  onChange={runAndClose(() => editor.chain().focus().toggleHeaderColumn().run())}
+                />
+                <MenuItemSelectable
+                  label="Borders"
+                  selected={bordersOn}
+                  onChange={runAndClose(() =>
+                    editor.chain().focus().updateAttributes("table", { borderless: bordersOn }).run()
+                  )}
+                />
+                <MenuItemRadioGroup
+                  label="Table alignment"
+                  items={["left", "center", "right"]}
+                  itemToString={(item) => `Align ${String(item)}`}
+                  selectedItem={alignment}
+                  onChange={runAndClose((...args: unknown[]) => {
+                    const next = normalizeTableAlignment(args[0]) ?? "left";
+                    editor
+                      .chain()
+                      .focus()
+                      .updateAttributes("table", { tableAlignment: next === "left" ? null : next })
+                      .run();
+                  })}
+                />
+              </MenuItemGroup>
+              <MenuItemDivider />
+              <MenuItem
+                label="Delete table"
+                kind="danger"
+                renderIcon={TrashCan}
+                disabled={!menuState.canDeleteTable}
+                onClick={runAndClose(() => editor.chain().focus().deleteTable().run())}
+              />
+            </Menu>,
+            document.body
+          )
+        : null}
       <ColorPickerDialog
         open={customFillOpen}
         onClose={() => setCustomFillOpen(false)}

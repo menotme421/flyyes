@@ -69,19 +69,25 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  /* WHY: Inter is the shadcn default typeface; system stack is the offline fallback. */
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* WHY: IBM Plex Sans is the Carbon typeface; Inter + system stack stay as
+     offline fallbacks until the removal phase. */
+  font-family: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 #root {
   min-height: 100svh;
+}
+
+/* WHY: Carbon UI shell header is fixed 48px — content starts below it. */
+.shell-content {
+  padding-top: 3rem;
 }
 
 /* WHY: TipTap content needs Word-like defaults. Scoped to .tiptap so toolbar UI is unaffected. */
@@ -468,6 +474,11 @@ body {
 @media print {
   body {
     background: #fff !important;
+  }
+  /* WHY: Shell header is screen chrome (also no-print) — its 48px content
+     offset must not push the first printed page down. */
+  .shell-content {
+    padding-top: 0 !important;
   }
   .no-print {
     display: none !important;

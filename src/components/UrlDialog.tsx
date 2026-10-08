@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { createPortal } from "react-dom";
+import { Button, Modal, TextInput } from "@carbon/react";
 
-// WHY: Shadcn dialog replacing window.prompt for link/image URLs.
+// WHY: Carbon Modal replacing window.prompt for link/image URLs.
 // window.prompt blocks the page, can't be styled, and is a11y-hostile;
 // this keeps focus trap + validation inline. Empty submit means "remove"
 // when allowEmpty (link), otherwise invalid.
@@ -72,44 +64,52 @@ export function UrlDialog({
     onClose();
   }
 
-  return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <Input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => { if (event.key === "Enter") handleSubmit(); }}
-          placeholder={placeholder}
-          aria-label={title}
-          inputMode="url"
-        />
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <DialogFooter>
-          {showRemove ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mr-auto text-destructive hover:text-destructive"
-              onClick={() => {
-                onRemove?.();
-                onClose();
-              }}
-            >
-              {removeLabel}
-            </Button>
-          ) : null}
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button size="sm" onClick={handleSubmit}>
-            {submitLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+  // WHY: Portaled to document.body — callers live inside the sticky ribbon,
+  // whose stacking context would otherwise trap this fixed overlay below
+  // the title row (dialog top visibly sliced off).
+  if (!open) return null;
+  return createPortal(
+    <Modal
+      open={open}
+      modalHeading={title}
+      modalLabel={description}
+      primaryButtonText={submitLabel}
+      secondaryButtonText="Cancel"
+      onRequestSubmit={handleSubmit}
+      onSecondarySubmit={onClose}
+      onRequestClose={onClose}
+      // WHY: Enter is handled by the input below — Modal's own Enter-submit
+      // would double-fire and insert the link twice.
+      shouldSubmitOnEnter={false}
+      size="sm"
+    >
+      <TextInput
+        id="url-dialog-input"
+        labelText={title}
+        hideLabel
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") handleSubmit();
+        }}
+        placeholder={placeholder}
+        invalid={error !== null}
+        invalidText={error ?? ""}
+      />
+      {showRemove ? (
+        <Button
+          kind="danger--ghost"
+          size="sm"
+          className="fly-dialog-remove"
+          onClick={() => {
+            onRemove?.();
+            onClose();
+          }}
+        >
+          {removeLabel}
+        </Button>
+      ) : null}
+    </Modal>,
+    document.body
   );
 }

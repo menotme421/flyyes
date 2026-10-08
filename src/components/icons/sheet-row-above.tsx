@@ -1,6 +1,6 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-export const SheetRowAbove = createLucideIcon("sheet-row-above", [
+export const SheetRowAbove = createSvgIcon("sheet-row-above", [
   ["path",{"d":"M3 5h18","key":"1u36vt"}],
   ["path",{"d":"M3 7h18","key":"1uiuf2"}],
   ["line",{"x1":"15","y1":"9","x2":"15","y2":"21","key":"13a17d"}],

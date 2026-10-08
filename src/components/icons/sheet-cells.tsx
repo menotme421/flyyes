@@ -1,6 +1,6 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-export const SheetCells = createLucideIcon("sheet-cells", [
+export const SheetCells = createSvgIcon("sheet-cells", [
   ["path",{"d":"M11 9v6","key":"y125n2"}],
   ["path",{"d":"M13 9v6","key":"c0avws"}],
   ["path",{"d":"M15 3v18","key":"14nvp0"}],

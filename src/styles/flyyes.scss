@@ -1,0 +1,332 @@
+// WHY: App layout classes that Tailwind utilities CANNOT express here.
+// Carbon's unlayered reset (margin/padding/border 0 on nearly everything)
+// always beats Tailwind's layered utilities, so every m-*/p-*/border-width
+// utility in the app is dead. These unlayered classes win instead, built on
+// Carbon spacing tokens. Non-competing utilities (flex, grid, gap, widths on
+// plain divs, colors, rounding) stay as Tailwind classes in markup.
+
+@use "@carbon/react/scss/spacing" as spacing;
+
+// ---------- Page frames ----------
+
+// WHY: Centered reading container (home). margin-inline MUST live here —
+// mx-auto is dead under Carbon's reset, which stranded the page at x=0.
+.fly-page {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: spacing.$spacing-05;
+
+  @media (min-width: 640px) {
+    padding: spacing.$spacing-06;
+  }
+}
+
+.fly-page-narrow {
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: spacing.$spacing-06;
+}
+
+.fly-page-xs {
+  max-width: 36rem;
+  margin-inline: auto;
+  padding: spacing.$spacing-07;
+  text-align: center;
+}
+
+.fly-error-button {
+  margin-top: spacing.$spacing-05;
+  padding: spacing.$spacing-03 spacing.$spacing-05;
+}
+
+// WHY: Page head — heading + count left, action pinned to the row end.
+.fly-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: spacing.$spacing-04;
+  margin-bottom: spacing.$spacing-05;
+}
+
+.fly-banner {
+  border: 1px solid var(--border);
+  padding: spacing.$spacing-04;
+}
+
+.fly-banner-sm {
+  border: 1px solid var(--border);
+  padding: spacing.$spacing-03;
+}
+
+.fly-notice {
+  margin-bottom: spacing.$spacing-04;
+}
+
+.fly-pagination {
+  margin-top: spacing.$spacing-06;
+}
+
+.fly-empty {
+  margin-top: spacing.$spacing-06;
+}
+
+.fly-pad-06 {
+  padding: spacing.$spacing-06;
+}
+
+// ---------- Editor chrome ----------
+
+.fly-title-row {
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+}
+
+.fly-title-row-bordered {
+  border-bottom: 1px solid var(--border);
+}
+
+.fly-title-error {
+  margin: 0 spacing.$spacing-05 spacing.$spacing-03;
+}
+
+.fly-title-input {
+  // WHY: Width + style only for the resting border; colors (resting
+  // transparent, hover, focus) live here too — layered border-color
+  // utilities would lose to any unlayered color.
+  border: 1px solid transparent;
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+
+  &:hover {
+    border-color: var(--input);
+  }
+
+  &:focus {
+    border-color: var(--input);
+  }
+}
+
+.fly-ribbon {
+  // WHY: Same 8px side padding as the title row above, so the title input
+  // and the toolbar start on the same vertical line.
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+}
+
+.fly-ribbon-bar {
+  // WHY: Vertical padding only — the inner toolbar carries the 8px sides.
+  // (An earlier version padded both layers and every ribbon control sat
+  // 12px left of its title-row counterpart.)
+  border-bottom: 1px solid var(--border);
+  padding-block: spacing.$spacing-03;
+}
+
+.fly-viewbar {
+  // WHY: Same 8px sides as the title row and ribbon, so the zoom lines up
+  // with the view switcher above it in Pages mode.
+  border-bottom: 1px solid var(--border);
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+}
+
+.fly-separator {
+  align-self: stretch;
+  // WHY: Tight dividers for the compact 60/40 pass — 8px each side read as
+  // empty gaps in the screenshot, 4px keeps groups scannable without waste.
+  margin-inline: spacing.$spacing-02;
+  border-left: 1px solid var(--border);
+}
+
+// WHY: One middle gap — Core sizes to content on the left, Secondary is
+// pinned right (margin-left auto absorbs ALL leftover width). Every tool
+// keeps its fixed size and tight gaps; the single gap sits between the
+// clusters like Word/Docs. Secondary carries its own left divider so the
+// divider hugs the right cluster instead of floating mid-gap.
+.fly-ribbon-core {
+  flex: 0 1 auto;
+}
+
+.fly-ribbon-secondary {
+  flex: 0 1 auto;
+  margin-left: auto;
+  border-left: 1px solid var(--border);
+  padding-left: spacing.$spacing-02;
+  background: transparent;
+}
+
+.fly-statusbar {
+  border-top: 1px solid var(--border);
+  padding: spacing.$spacing-02 spacing.$spacing-05;
+}
+
+// WHY: Pushes a flex item to the row end — ml-auto is dead (margin reset).
+.fly-push-right {
+  margin-inline-start: auto;
+}
+
+// WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
+// (list-box__menu is inset-inline: 0), so short trigger labels would clip
+// long menu labels. These min-widths let the menu outgrow its trigger
+// rightward instead. Exception to the no-cds-internals rule, explicitly
+// confirmed by the user — contained to menu width only.
+.fly-roomy-menu-lg .cds--list-box__menu {
+  min-width: 13rem;
+}
+
+.fly-roomy-menu-md .cds--list-box__menu {
+  min-width: 10rem;
+}
+
+// WHY: The reverse — Carbon's *inline* dropdowns force menus to at least
+// 288px wide, absurd for short lists like paragraph styles. This floors it
+// just wide enough for the longest item plus its checkmark space
+// ("Normal text" clips below ~170px).
+.fly-tight-menu .cds--list-box__menu {
+  min-width: 11rem;
+}
+
+// ---------- Menus, panels, rows ----------
+
+.fly-popover-panel {
+  padding: spacing.$spacing-03;
+}
+
+.fly-popover-panel-lg {
+  padding: spacing.$spacing-04;
+}
+
+.fly-submenu-panel {
+  padding: spacing.$spacing-02 spacing.$spacing-04;
+}
+
+.fly-menu-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: spacing.$spacing-03;
+  border-radius: 2px;
+  padding: spacing.$spacing-03;
+}
+
+.fly-menu-label {
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+}
+
+.fly-menu-divider {
+  height: 1px;
+  margin-block: spacing.$spacing-02;
+  background: var(--border);
+}
+
+// WHY: Section captions inside panels/dialogs (replaces mb-1.5/mb-2, dead).
+.fly-section-label {
+  margin-bottom: spacing.$spacing-03;
+}
+
+.fly-caption {
+  margin-top: spacing.$spacing-03;
+}
+
+// ---------- Cards ----------
+
+.fly-compare-strip {
+  border-top: 1px solid var(--border);
+  padding-top: spacing.$spacing-03;
+}
+
+.fly-card-body {
+  border-top: 1px solid var(--border);
+  padding: spacing.$spacing-03;
+}
+
+.fly-card-date {
+  margin-top: spacing.$spacing-01;
+}
+
+// WHY: Width + style only — color stays with the border-* utilities so
+// selected/hover variants (primary, ring) keep working: an unlayered color
+// here would beat those layered utilities.
+.fly-swatch {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.fly-color-bar {
+  margin-top: spacing.$spacing-01;
+  border: 1px solid rgb(0 0 0 / 0.1);
+}
+
+// ---------- Page setup dialog ----------
+
+.fly-paper-tab {
+  margin-bottom: -1px;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  padding-bottom: spacing.$spacing-03;
+}
+
+// WHY: Active paper tab — border color lives here (not in a layered
+// border-foreground utility, which would lose to the color above).
+.fly-paper-tab.is-active {
+  border-bottom-color: var(--foreground);
+}
+
+.fly-margin-row {
+  border-width: 1px;
+  border-style: solid;
+  padding: spacing.$spacing-03;
+}
+
+.fly-preview-box {
+  border: 1px solid var(--border);
+  padding: spacing.$spacing-04;
+}
+
+.fly-preview-sheet {
+  margin-inline: auto;
+}
+
+// ---------- Search panel ----------
+
+.fly-search-panel {
+  border: 1px solid var(--border);
+  padding: spacing.$spacing-04;
+}
+
+// ---------- Misc one-offs ----------
+
+.fly-dialog-remove {
+  margin-top: spacing.$spacing-04;
+}
+
+.fly-hex-tip {
+  padding: spacing.$spacing-02 spacing.$spacing-03;
+}
+
+.fly-badge {
+  // WHY: Width + style only — color stays with the border-* utilities so
+  // variants (primary, destructive…) keep working.
+  border-width: 1px;
+  border-style: solid;
+  padding-inline: spacing.$spacing-02;
+}
+
+// ---------- Print & preview chrome ----------
+
+.fly-preview-wrap {
+  padding: spacing.$spacing-06;
+
+  @media print {
+    padding: 0;
+  }
+}
+
+.fly-preview-head {
+  border-bottom: 1px solid var(--border);
+  padding-top: spacing.$spacing-07;
+}
+
+.fly-preview-foot {
+  border-top: 1px solid var(--border);
+  padding-top: spacing.$spacing-03;
+  padding-bottom: spacing.$spacing-07;
+}

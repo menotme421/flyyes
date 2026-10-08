@@ -25,8 +25,8 @@ export function DocumentPagePreview({ title, contentHtml, pageSetup }: DocumentP
   const padBottom = cmToPx(margins.bottomCm);
 
   return (
-    <div className="flex flex-col items-center gap-6 bg-muted/60 p-6 print:bg-white print:p-0">
-      {pages.map((page) => (
+    <div className="fly-preview-wrap flex flex-col items-center gap-6 bg-muted/60 print:bg-white">
+        {pages.map((page) => (
         <section
           key={page.pageNumber}
           aria-label={`${title} page ${page.pageNumber} of ${page.totalPages}`}
@@ -37,7 +37,7 @@ export function DocumentPagePreview({ title, contentHtml, pageSetup }: DocumentP
           }}
         >
           <header
-            className="flex items-center justify-between border-b border-border pt-8 text-xs text-muted-foreground"
+            className="fly-preview-head flex items-center justify-between text-xs text-muted-foreground"
             style={{ paddingLeft: padSide, paddingRight: padSideRight }}
           >
             <span className="truncate">{title}</span>
@@ -50,7 +50,7 @@ export function DocumentPagePreview({ title, contentHtml, pageSetup }: DocumentP
             dangerouslySetInnerHTML={{ __html: page.htmlBlocks.join("") || "<p></p>" }}
           />
           <footer
-            className="flex items-center justify-center border-t border-border pb-8 pt-2 text-xs text-muted-foreground"
+            className="fly-preview-foot flex items-center justify-center text-xs text-muted-foreground"
             style={{ paddingLeft: padSide, paddingRight: padSideRight }}
           >
             Flyyes Docs · local preview — use Print for PDF

@@ -1,14 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { createPortal } from "react-dom";
+import { Information } from "@carbon/icons-react";
+import { Button, IconButton, Modal, TextInput } from "@carbon/react";
 import {
   buildGrayscale,
   buildHoneycomb,
@@ -249,20 +242,24 @@ export function HoneycombColorPicker({
       <div className="relative">
         {/* WHY: Info icon floats over the wheel's empty top-right corner —
             the top row is only 7 cells wide, so no colors hide beneath it. */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Color details"
-          title="Color details"
-          className="absolute top-0 right-0 z-10 h-7 w-7 bg-background/80"
-          onClick={() => setInspectorOpen(true)}
+        <IconButton
+          kind="ghost"
+          size="sm"
+          label="Color details"
+          className="absolute top-0 right-0 z-10 bg-background/80"
+          onClick={() => {
+            setInspectorOpen(true);
+          }}
         >
-          <Info className="h-4 w-4" />
-        </Button>
+          <Information />
+        </IconButton>
         <svg
           ref={svgReference}
           viewBox={`${minVx} ${minVy} ${maxVx - minVx} ${maxVy - minVy}`}
-          className="h-auto w-full"
+          // WHY: Capped width — the wheel fills its panel by default, which
+          // made the toolbar popover huge. Smaller cells stay usable via
+          // scrub-select, keyboard nav, and hex snap.
+          className="mx-auto h-auto w-full max-w-[192px]"
           role="group"
           aria-label="Honeycomb color picker"
           onMouseMove={(event) => {
@@ -364,7 +361,7 @@ export function HoneycombColorPicker({
         {tooltip ? (
           <span
             role="status"
-            className="pointer-events-none absolute z-10 rounded-md bg-primary px-2 py-1 text-xs whitespace-nowrap text-primary-foreground shadow-md"
+            className="fly-hex-tip pointer-events-none absolute z-10 rounded-md bg-primary text-xs whitespace-nowrap text-primary-foreground shadow-md"
             style={{ left: tooltip.x, top: tooltip.y - 12, transform: "translate(-50%, -100%)" }}
           >
             {tooltip.hex} · {tooltip.name}
@@ -373,21 +370,25 @@ export function HoneycombColorPicker({
       </div>
 
       <div className="flex items-center gap-2">
-        <Input
+        <TextInput
+          id="honeycomb-hex"
+          labelText="Custom hex color"
+          hideLabel
+          size="sm"
           value={hexDraft}
           onChange={(event) => setHexDraft(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") handleHexApply(); }}
           placeholder="#RRGGBB"
           title="Type a hex color — Enter snaps to closest"
-          aria-label="Custom hex color"
           maxLength={7}
-          className="h-9 font-mono uppercase"
+          className="font-mono uppercase"
+          invalid={hexError !== null}
+          invalidText={hexError ?? ""}
         />
-        <Button size="sm" onClick={handleHexApply}>
+        <Button kind="primary" size="sm" onClick={handleHexApply}>
           Apply
         </Button>
       </div>
-      {hexError ? <p className="-mt-1 text-xs text-destructive">{hexError}</p> : null}
 
       <InspectorDialog
         open={inspectorOpen}
@@ -423,28 +424,37 @@ function InspectorDialog({ open, onClose, selectedHex, h, s, l, rgb, hsv, cmyk, 
   harmonies: Array<{ kind: HarmonyKind; label: string; hues: number[] }>;
   onSelect: (hex: string) => void;
 }) {
-  return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Color details</DialogTitle>
-          <DialogDescription>Formats, contrast, and harmonies.</DialogDescription>
-        </DialogHeader>
-        <ColorInspector
-          selectedHex={selectedHex}
-          h={h}
-          s={s}
-          l={l}
-          rgb={rgb}
-          hsv={hsv}
-          cmyk={cmyk}
-          ratioWhite={ratioWhite}
-          ratioBlack={ratioBlack}
-          harmonies={harmonies}
-          onSelect={onSelect}
-        />
-      </DialogContent>
-    </Dialog>
+  // WHY: Mounted only while open, AND portaled to document.body. This dialog
+  // lives inside the color popover, whose floating-ui transform would
+  // otherwise (a) re-anchor the closed-but-mounted overlay and blow out page
+  // width, (b) hide the open dialog inside display:none when the popover
+  // closes, and (c) drag the open dialog off-center. The portal answers to
+  // the viewport, so none of those apply.
+  if (!open) return null;
+  return createPortal(
+    <Modal
+      open={open}
+      passiveModal
+      size="md"
+      modalHeading="Color details"
+      modalLabel="Formats, contrast, and harmonies."
+      onRequestClose={onClose}
+    >
+      <ColorInspector
+        selectedHex={selectedHex}
+        h={h}
+        s={s}
+        l={l}
+        rgb={rgb}
+        hsv={hsv}
+        cmyk={cmyk}
+        ratioWhite={ratioWhite}
+        ratioBlack={ratioBlack}
+        harmonies={harmonies}
+        onSelect={onSelect}
+      />
+    </Modal>,
+    document.body
   );
 }
 

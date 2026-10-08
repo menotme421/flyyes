@@ -1,19 +1,11 @@
 import { useState } from "react";
-import { Download, FileJson, FileText, FileType, Globe, Printer } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Document, DocumentExport, Globe, Json, Printer } from "@carbon/icons-react";
+import { MenuButton, MenuItem, MenuItemDivider } from "@carbon/react";
 import { exportDocumentAsHtml, exportDocumentAsJson } from "@/services/exportImportService";
 import { DEFAULT_PAGE_MARGINS } from "@/services/pageSetupService";
 import type { PageMargins } from "@/storage/documentTypes";
 
-// WHY: One Export entry point on shadcn DropdownMenu (Radix focus + roles).
+// WHY: One Export entry point on Carbon MenuButton (focus + roles built in).
 // JSON/HTML export instantly; Markdown/DOCX lazy-load heavy converters on click.
 // Used in the edit toolbar and above the pages preview so both modes match.
 
@@ -56,67 +48,45 @@ export function ExportMenu({ documentTitle, contentJson, contentHtml, pageMargin
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Export document">
-          <Download /> Export
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>Export document</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <ExportItem
-          icon={<FileJson className="h-4 w-4" />}
-          label="JSON backup"
-          hint="Full fidelity"
-          onSelect={() => exportDocumentAsJson(documentTitle, contentJson)}
-        />
-          <ExportItem
-            icon={<FileText className="h-4 w-4" />}
-            label={busy === "md" ? "Markdown…" : "Markdown"}
-            hint="Text, links, tables"
-            disabled={busy !== null}
-            onSelect={() => void handleMarkdown()}
-          />
-        <ExportItem
-          icon={<FileType className="h-4 w-4" />}
-          label={busy === "docx" ? "Word…" : "Word (.docx)"}
-          hint="Opens in Word"
-          disabled={busy !== null}
-          onSelect={() => void handleDocx()}
-        />
-        <ExportItem
-          icon={<Globe className="h-4 w-4" />}
-          label="Web page (.html)"
-          hint="Share anywhere"
-          onSelect={() => exportDocumentAsHtml(documentTitle, contentHtml)}
-        />
-        <DropdownMenuSeparator />
-          <ExportItem
-            icon={<Printer className="h-4 w-4" />}
-            label="Print / PDF"
-            hint="Via browser"
-            // WHY: Delay past the menu-close so the open dropdown isn't captured
-            // in the print snapshot (Radix closes async on select).
-            onSelect={() => window.setTimeout(() => window.print(), 150)}
-          />
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function ExportItem({ icon, label, hint, disabled, onSelect }: {
-  icon: React.ReactNode;
-  label: string;
-  hint: string;
-  disabled?: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <DropdownMenuItem disabled={disabled} onSelect={onSelect} className="gap-2">
-      <span className="shrink-0 text-muted-foreground">{icon}</span>
-      <span className="flex-1 whitespace-nowrap">{label}</span>
-      <span className="shrink-0 text-xs text-muted-foreground">{hint}</span>
-    </DropdownMenuItem>
+    // WHY: bottom-end anchoring — the trigger sits at the viewport's right
+    // edge, so bottom-start would push the menu off-screen. (Default
+    // "bottom" also force-squeezes the menu to the trigger's width.)
+    <MenuButton kind="ghost" size="sm" label="Export" menuAlignment="bottom-end">
+      <MenuItem
+        label="JSON backup"
+        shortcut="Full fidelity"
+        renderIcon={Json}
+        onClick={() => exportDocumentAsJson(documentTitle, contentJson)}
+      />
+      <MenuItem
+        label={busy === "md" ? "Markdown…" : "Markdown"}
+        shortcut="Text, links, tables"
+        renderIcon={Document}
+        disabled={busy !== null}
+        onClick={() => void handleMarkdown()}
+      />
+      <MenuItem
+        label={busy === "docx" ? "Word…" : "Word (.docx)"}
+        shortcut="Opens in Word"
+        renderIcon={DocumentExport}
+        disabled={busy !== null}
+        onClick={() => void handleDocx()}
+      />
+      <MenuItem
+        label="Web page (.html)"
+        shortcut="Share anywhere"
+        renderIcon={Globe}
+        onClick={() => exportDocumentAsHtml(documentTitle, contentHtml)}
+      />
+      <MenuItemDivider />
+      <MenuItem
+        label="Print / PDF"
+        shortcut="Via browser"
+        renderIcon={Printer}
+        // WHY: Delay past the menu-close so the open menu isn't captured
+        // in the print snapshot.
+        onClick={() => window.setTimeout(() => window.print(), 150)}
+      />
+    </MenuButton>
   );
 }

@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "@/components/toast";
 import { logError } from "@/utils/appLogger";
 import { cmToTwip, DEFAULT_PAGE_MARGINS, mmToTwip } from "./pageSetupService";
 import type { PageMargins } from "@/storage/documentTypes";

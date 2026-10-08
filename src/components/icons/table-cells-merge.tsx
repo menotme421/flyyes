@@ -1,8 +1,7 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-// WHY: Custom lucide-studio variant (the stock TableCellsMerge stays
-// available from lucide-react) — the Icon suffix avoids the name collision.
-export const TableCellsMergeIcon = createLucideIcon("table-cells-merge", [
+// WHY: Custom drawn variant — the Icon suffix avoids a name collision.
+export const TableCellsMergeIcon = createSvgIcon("table-cells-merge", [
   ["path",{"d":"M12 21v-6","key":"lihzve"}],
   ["path",{"d":"M12 9V3","key":"da5inc"}],
   ["path",{"d":"M3 11h18","key":"11qctw"}],

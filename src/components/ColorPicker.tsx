@@ -1,19 +1,5 @@
 import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Button, ContentSwitcher, Modal, Popover, PopoverContent, Switch, TextInput } from "@carbon/react";
 import { HoneycombColorPicker } from "./HoneycombColorPicker";
 
 // WHY: Word-style color picking for the whole app — the native <input type=color>
@@ -166,7 +152,7 @@ export function SpectrumPicker({ initialHex, onApply, onPreviewChange }: {
         tabIndex={0}
         aria-label="Saturation and brightness"
         aria-valuetext={hex}
-        className="relative h-44 w-full cursor-crosshair touch-none rounded-md border border-border"
+        className="fly-swatch relative h-44 w-full cursor-crosshair touch-none rounded-md border-border"
         style={{
           background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueColor})`,
         }}
@@ -225,7 +211,11 @@ export function SpectrumPicker({ initialHex, onApply, onPreviewChange }: {
         />
       </div>
       <div className="flex items-center gap-2">
-        <Input
+        <TextInput
+          id="spectrum-hex"
+          labelText="Hex color"
+          hideLabel
+          size="sm"
           value={shownHex}
           onChange={(event) => {
             setDraft(event.target.value);
@@ -234,11 +224,10 @@ export function SpectrumPicker({ initialHex, onApply, onPreviewChange }: {
           }}
           onBlur={commitDraft}
           onKeyDown={(event) => { if (event.key === "Enter") handleApply(); }}
-          aria-label="Hex color"
           maxLength={7}
-          className="h-9 font-mono uppercase"
+          className="font-mono uppercase"
         />
-        <Button size="sm" onClick={handleApply}>
+        <Button kind="primary" size="sm" onClick={handleApply}>
           Apply
         </Button>
       </div>
@@ -251,7 +240,7 @@ function NewCurrentStrip({ current, preview }: {
   preview?: string | null;
 }) {
   return (
-    <div className="flex items-center gap-3 border-t border-border pt-2">
+    <div className="fly-compare-strip flex items-center gap-3">
       <PreviewSwatch label="New" color={preview ?? current} />
       <PreviewSwatch label="Current" color={current} />
     </div>
@@ -263,10 +252,10 @@ function PreviewSwatch({ label, color }: { label: string; color?: string | null 
     <span className="flex items-center gap-1.5">
       <span
         aria-hidden="true"
-        className="h-6 w-10 rounded border border-border"
+        className="fly-swatch h-6 w-10 rounded border-border"
         style={{ backgroundColor: color ?? "transparent" }}
       />
-      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="cds--type-label-01 text-muted-foreground">{label}</span>
     </span>
   );
 }
@@ -280,32 +269,20 @@ function ColorPickerBody({ value, onSelect }: {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex rounded-md border border-input p-0.5 text-xs" role="tablist" aria-label="Color picker mode">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "standard"}
-          className={`flex-1 rounded px-2 py-1 ${tab === "standard" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-          onClick={() => setTab("standard")}
-        >
-          Standard
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "custom"}
-          className={`flex-1 rounded px-2 py-1 text-xs ${tab === "custom" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-          onClick={() => setTab("custom")}
-        >
-          Custom
-        </button>
-      </div>
+      <ContentSwitcher
+        size="sm"
+        selectedIndex={tab === "standard" ? 0 : 1}
+        onChange={(params) => setTab(params.index === 1 ? "custom" : "standard")}
+      >
+        <Switch name="standard" text="Standard" />
+        <Switch name="custom" text="Custom" />
+      </ContentSwitcher>
       {tab === "standard" ? (
         <HoneycombColorPicker
           value={value}
           onSelect={onSelect}
           onHover={setHovered}
-          radius={9}
+          radius={7}
         />
       ) : (
         <SpectrumPicker initialHex={value} onApply={onSelect} onPreviewChange={setHovered} />
@@ -323,19 +300,16 @@ interface ColorPickerProperties {
 }
 
 export function ColorPicker({ title, value, onSelect, children }: ColorPickerProperties) {
-  // WHY: Uncontrolled popover that stays open while picking — colors apply
-  // live on every click so users can audition shades. Closes via outside
-  // click, Escape, or re-clicking the trigger (standard Radix behavior).
+  // WHY: Controlled Carbon Popover that stays open while picking — colors
+  // apply live on every click so users can audition shades. Closes via
+  // outside click, Escape, or re-clicking the trigger. The trigger already
+  // carries its own tooltip (IconButton label), so no wrapper is needed.
+  const [open, setOpen] = useState(false);
   return (
-    <Popover>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>{children}</PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">{title}</TooltipContent>
-      </Tooltip>
-      <PopoverContent align="start" className="w-64">
-        <p className="mb-2 text-xs font-semibold text-muted-foreground">{title}</p>
+    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
+      <span onClick={() => setOpen((currently) => !currently)}>{children}</span>
+      <PopoverContent className="fly-popover-panel-lg w-52">
+        <p className="cds--type-label-02 fly-section-label text-muted-foreground">{title}</p>
         <ColorPickerBody value={value} onSelect={onSelect} />
       </PopoverContent>
     </Popover>
@@ -353,16 +327,17 @@ interface ColorPickerDialogProperties {
 
 export function ColorPickerDialog({ open, onClose, title, description, value, onSelect }: ColorPickerDialogProperties) {
   // WHY: Picks apply live without closing (same audition behavior as the
-  // popover) — close via ✕, Escape, or outside click.
+  // popover) — close via ✕, Escape, or outside click. Passive: no footer.
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <ColorPickerBody value={value} onSelect={onSelect} />
-      </DialogContent>
-    </Dialog>
+    <Modal
+      open={open}
+      passiveModal
+      size="sm"
+      modalHeading={title}
+      modalLabel={description}
+      onRequestClose={onClose}
+    >
+      <ColorPickerBody value={value} onSelect={onSelect} />
+    </Modal>
   );
 }

@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
-import { Check, RectangleHorizontal, RectangleVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { createPortal } from "react-dom";
+import { Checkmark } from "@carbon/icons-react";
+import { ContentSwitcher, Modal, Switch } from "@carbon/react";
 import { PAGE_PRESETS, findPreset, type PaperPreset } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
 import { mergeClassNames } from "@/lib/utils";
@@ -66,13 +57,27 @@ export function PageSetupDialog({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Page Setup</DialogTitle>
-          <DialogDescription>Saved per document · applies to edit, preview, print, and Word export</DialogDescription>
-        </DialogHeader>
+  // WHY: Portaled to document.body (and mounted only while open) — this
+  // dialog lives inside the sticky ribbon, whose stacking context would
+  // otherwise trap the fixed overlay below the title row (top visibly cut
+  // off). Same treatment as the color UrlDialogs.
+  if (!open) return null;
+  return createPortal(
+    <Modal
+      open={open}
+      size="md"
+      hasScrollingContent
+      modalHeading="Page setup"
+      modalLabel="Saved per document · applies to edit, preview, print, and Word export"
+      primaryButtonText="Apply"
+      secondaryButtonText="Cancel"
+      onRequestSubmit={() => {
+        onSave(selectedMargin.id, orientation);
+        onClose();
+      }}
+      onSecondarySubmit={onClose}
+      onRequestClose={onClose}
+    >
 
         {/* Paper tabs */}
         <div role="tablist" aria-label="Paper size" className="flex items-center gap-5">
@@ -87,10 +92,10 @@ export function PageSetupDialog({
                 aria-selected={isActive}
                 onClick={() => handleTabChange(tab)}
                 className={mergeClassNames(
-                  "-mb-px border-b-2 pb-1.5 text-base transition-colors",
+                  "fly-paper-tab text-base transition-colors",
                   isActive
-                    ? "border-foreground font-medium text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "is-active font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {tab}
@@ -99,31 +104,23 @@ export function PageSetupDialog({
           })}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_1.15fr]">
+        <div className="grid gap-4 md:grid-cols-[1fr_1.15fr]">
           {/* Left: controls */}
-          <div className="flex min-w-0 flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-4">
             <section aria-label="Orientation">
-              <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">Orientation</h3>
-              <ToggleGroup
-                type="single"
-                value={orientation}
-                onValueChange={(value) => {
-                  if (value === "portrait" || value === "landscape") setOrientation(value);
-                }}
-                aria-label="Page orientation"
-                className="grid grid-cols-2 gap-1.5"
+              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Orientation</h3>
+              <ContentSwitcher
+                size="sm"
+                selectedIndex={orientation === "portrait" ? 0 : 1}
+                onChange={(params) => setOrientation(params.index === 1 ? "landscape" : "portrait")}
               >
-                <ToggleGroupItem value="portrait" aria-label="Portrait" className="gap-1.5">
-                  <RectangleVertical className="h-4 w-4" aria-hidden /> Portrait
-                </ToggleGroupItem>
-                <ToggleGroupItem value="landscape" aria-label="Landscape" className="gap-1.5">
-                  <RectangleHorizontal className="h-4 w-4" aria-hidden /> Landscape
-                </ToggleGroupItem>
-              </ToggleGroup>
+                <Switch name="portrait" text="Portrait" />
+                <Switch name="landscape" text="Landscape" />
+              </ContentSwitcher>
             </section>
 
             <section aria-label="Margins">
-              <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">Margins</h3>
+              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Margins</h3>
               <div role="radiogroup" aria-label={`${activeGroup.paperLabel} margin presets`} className="flex flex-col gap-1.5">
                 {visibleMargins.map((preset) => {
                   const isSelected = preset.id === selectedMargin.id;
@@ -135,7 +132,7 @@ export function PageSetupDialog({
                       aria-checked={isSelected}
                       onClick={() => setSelectedMarginId(preset.id)}
                       className={mergeClassNames(
-                        "flex items-center gap-3 rounded-md border p-2 text-left transition-colors",
+                        "fly-margin-row flex items-center gap-3 rounded-md text-left transition-colors",
                         isSelected
                           ? "border-primary bg-accent"
                           : "border-border hover:border-input hover:bg-muted/50"
@@ -143,11 +140,11 @@ export function PageSetupDialog({
                     >
                       <MarginThumb preset={preset} />
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-1.5 text-sm font-medium">
+                        <span className="cds--type-body-compact-02 flex items-center gap-1.5">
                           {preset.name}
-                          {isSelected ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
+                          {isSelected ? <Checkmark className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
                         </span>
-                        <span className="block truncate text-xs text-muted-foreground" title={preset.useCases.join(" · ")}>
+                        <span className="cds--type-body-compact-01 block truncate text-muted-foreground" title={preset.useCases.join(" · ")}>
                           {preset.useCases.join(" · ")}
                         </span>
                       </span>
@@ -160,41 +157,26 @@ export function PageSetupDialog({
 
           {/* Right: live preview */}
           <section aria-label="Preview" className="min-w-0 order-first md:order-none">
-            <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">Preview</h3>
-            {/* WHY: Width-capped (not height-capped) so the aspect ratio can
-                never distort — height follows from width. 240px keeps the
-                whole dialog, footer included, above the fold. */}
-            <div className="rounded-md border border-border bg-muted/40 p-3">
+              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Preview</h3>
+          {/* WHY: Width-capped (not height-capped) so the aspect ratio can
+              never distort — height follows from width. 200px keeps the whole
+              dialog, footer included, above the fold on short viewports. */}
+            <div className="fly-preview-box rounded-md bg-muted/40">
               <PreviewSheet
                 widthMm={orientation === "landscape" ? previewPreset.heightMm : previewPreset.widthMm}
                 heightMm={orientation === "landscape" ? previewPreset.widthMm : previewPreset.heightMm}
                 margins={previewPreset.margins}
               />
-              <p className="mt-1.5 text-center text-xs text-muted-foreground">
+              <p className="cds--type-label-01 fly-caption text-center text-muted-foreground">
                 {previewPreset.widthMm} × {previewPreset.heightMm} mm ·{" "}
                 {orientation === "landscape" ? "Landscape" : "Portrait"}
               </p>
-              <p className="text-center text-xs text-muted-foreground">{describeMargins(previewPreset.margins)}</p>
+              <p className="cds--type-label-01 text-center text-muted-foreground">{describeMargins(previewPreset.margins)}</p>
             </div>
           </section>
         </div>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline" size="sm">Cancel</Button>
-          </DialogClose>
-          <Button
-            size="sm"
-            onClick={() => {
-              onSave(selectedMargin.id, orientation);
-              onClose();
-            }}
-          >
-            Apply
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </Modal>,
+    document.body
   );
 }
 
@@ -206,7 +188,7 @@ function MarginThumb({ preset }: { preset: PaperPreset }) {
   return (
     <span
       aria-hidden
-      className="relative shrink-0 rounded-[2px] border border-border bg-white"
+      className="fly-swatch relative shrink-0 rounded-[2px] border-border bg-white"
       style={{ width: boxWidth, height: boxHeight }}
     >
       <span
@@ -236,7 +218,7 @@ function PreviewSheet({
   return (
     <span
       aria-hidden
-      className="relative mx-auto block w-full max-w-[240px] bg-white shadow-sm"
+      className="fly-preview-sheet relative block w-full max-w-[200px] bg-white shadow-sm"
       style={{ aspectRatio: `${widthMm} / ${heightMm}` }}
     >
       <span

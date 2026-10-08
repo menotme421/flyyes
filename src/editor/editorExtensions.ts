@@ -30,7 +30,6 @@ export const WORD_FONT_FAMILIES = [
   "Georgia",
   "Times New Roman",
   "Verdana",
-  "Inter",
   "Courier New",
 ] as const;
 

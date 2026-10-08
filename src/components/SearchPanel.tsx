@@ -1,7 +1,6 @@
 import { useEditorState, type Editor } from "@tiptap/react";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ChevronDown, ChevronUp, Close } from "@carbon/icons-react";
+import { Button, Checkbox, IconButton, TextInput } from "@carbon/react";
 
 // WHY: Own file (single responsibility) — search state lives in the
 // FindAndReplace extension, this panel is only the controls. Docks top-right
@@ -51,7 +50,7 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
     <div
       role="search"
       aria-label="Find and replace"
-      className="no-print absolute right-4 top-2 z-20 w-72 rounded-md border border-border bg-background p-3 shadow-lg"
+      className="fly-search-panel no-print absolute right-4 top-2 z-20 w-72 rounded-md bg-background shadow-lg"
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.stopPropagation();
@@ -60,19 +59,22 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
         event.stopPropagation();
       }}
     >
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold">Find and replace</span>
-        <Button variant="ghost" size="icon" aria-label="Close search" className="h-6 w-6" onClick={handleClose}>
-          <X className="h-3.5 w-3.5" />
-        </Button>
+      <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="cds--type-label-02">Find and replace</span>
+        <IconButton kind="ghost" size="xs" label="Close search" onClick={handleClose}>
+          <Close />
+        </IconButton>
       </div>
 
       <div className="flex items-center gap-1">
-        <Input
+        <TextInput
+          id="find-input"
+          labelText="Find"
+          hideLabel
+          size="sm"
           autoFocus
           placeholder="Find…"
-          aria-label="Find"
-          className="h-8 text-xs"
           disabled={!searchReady}
           onChange={(event) => editor.commands.setSearchTerm(event.target.value)}
           onKeyDown={(event) => {
@@ -82,36 +84,36 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
             }
           }}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Previous match"
-          className="h-8 w-8 shrink-0"
+        <IconButton
+          kind="ghost"
+          size="sm"
+          label="Previous match"
           disabled={!searchReady}
           onClick={() => editor.commands.goToPreviousResult()}
         >
-          <ChevronUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Next match"
-          className="h-8 w-8 shrink-0"
+          <ChevronUp />
+        </IconButton>
+        <IconButton
+          kind="ghost"
+          size="sm"
+          label="Next match"
           disabled={!searchReady}
           onClick={() => editor.commands.goToNextResult()}
         >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
+          <ChevronDown />
+        </IconButton>
       </div>
 
-      <p className="mt-1 text-xs text-muted-foreground" aria-live="polite">
+      <p className="cds--type-body-compact-01 text-muted-foreground" aria-live="polite">
         {resultsCount === 0 ? "No matches" : `${currentNumber} of ${resultsCount}`}
       </p>
 
-      <Input
+      <TextInput
+        id="replace-input"
+        labelText="Replace with"
+        hideLabel
+        size="sm"
         placeholder="Replace with…"
-        aria-label="Replace with"
-        className="mt-2 h-8 text-xs"
         disabled={!searchReady}
         onChange={(event) => editor.commands.setReplaceTerm(event.target.value)}
         onKeyDown={(event) => {
@@ -121,20 +123,20 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
           }
         }}
       />
-      <div className="mt-2 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <Button
-          variant="outline"
+          kind="tertiary"
           size="sm"
-          className="h-7 flex-1 text-xs"
+          className="flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replace()}
         >
           Replace
         </Button>
         <Button
-          variant="outline"
+          kind="tertiary"
           size="sm"
-          className="h-7 flex-1 text-xs"
+          className="flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replaceAll()}
         >
@@ -142,27 +144,22 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
         </Button>
       </div>
 
-      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-        <label className="flex cursor-pointer items-center gap-1">
-          <input
-            type="checkbox"
-            checked={caseSensitive}
-            disabled={!searchReady}
-            onChange={(event) => editor.commands.setCaseSensitive(event.target.checked)}
-            className="h-3.5 w-3.5 accent-current"
-          />
-          Match case
-        </label>
-        <label className="flex cursor-pointer items-center gap-1">
-          <input
-            type="checkbox"
-            checked={wholeWord}
-            disabled={!searchReady}
-            onChange={(event) => editor.commands.setWholeWord(event.target.checked)}
-            className="h-3.5 w-3.5 accent-current"
-          />
-          Whole word
-        </label>
+      <div className="flex items-center gap-4">
+        <Checkbox
+          id="match-case"
+          labelText="Match case"
+          checked={caseSensitive}
+          disabled={!searchReady}
+          onChange={(event) => editor.commands.setCaseSensitive(event.target.checked)}
+        />
+        <Checkbox
+          id="whole-word"
+          labelText="Whole word"
+          checked={wholeWord}
+          disabled={!searchReady}
+          onChange={(event) => editor.commands.setWholeWord(event.target.checked)}
+        />
+      </div>
       </div>
     </div>
   );

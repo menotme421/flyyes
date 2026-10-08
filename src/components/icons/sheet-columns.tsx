@@ -1,6 +1,6 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-export const SheetColumns = createLucideIcon("sheet-columns", [
+export const SheetColumns = createSvgIcon("sheet-columns", [
   ["path",{"d":"M19 21a2 2 0 002-2","key":"r6el9c"}],
   ["path",{"d":"M19 21H5","key":"150jfl"}],
   ["path",{"d":"M19 3v18","key":"1sk56x"}],

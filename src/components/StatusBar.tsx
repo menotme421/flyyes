@@ -28,7 +28,7 @@ export function StatusBar({ editor, savedLabel }: StatusBarProperties) {
   return (
     <div
       aria-label="Document statistics"
-      className="no-print flex items-center justify-between border-t border-border bg-background px-4 py-1 text-xs text-muted-foreground"
+      className="cds--type-body-compact-01 fly-statusbar no-print flex items-center justify-between bg-background text-muted-foreground"
     >
       <span>
         {words} words · {characters} characters

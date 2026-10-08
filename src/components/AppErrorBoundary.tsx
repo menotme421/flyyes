@@ -21,13 +21,13 @@ export class AppErrorBoundary extends React.Component<React.PropsWithChildren, E
   render() {
     if (this.state.hasError) {
       return (
-        <div className="mx-auto max-w-xl p-8 text-center">
-          <h1 className="text-xl font-semibold">Something went wrong</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+        <div className="fly-page-xs">
+          <h1 className="cds--type-heading-03">Something went wrong</h1>
+          <p className="cds--type-body-01 fly-caption text-muted-foreground">
             Please reload the page. Your documents are still saved in this browser.
           </p>
           <button
-            className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
+            className="fly-error-button rounded-md bg-primary text-sm text-primary-foreground"
             onClick={() => window.location.reload()}
           >
             Reload

@@ -1,11 +1,9 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowLeft, Eye, PenLine as PenLineIcon } from "lucide-react";
+import { ArrowLeft, Edit, View } from "@carbon/icons-react";
+import { Button, ContentSwitcher, IconSwitch } from "@carbon/react";
 import { DocumentPagePreview } from "@/components/DocumentPagePreview";
 import { ExportMenu } from "@/components/ExportMenu";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ZoomSelect } from "@/components/ZoomSelect";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { getLocalDocument, renameLocalDocument, updatePageSetup } from "@/services/documentService";
 import { buildAtPageCss, resolvePageSetup, type ResolvedPageSetup } from "@/services/pageSetupService";
 import type { LocalDocument, PageOrientation } from "@/storage/documentTypes";
@@ -16,9 +14,9 @@ const DocumentEditor = lazy(() =>
   import("@/editor/DocumentEditor").then((module) => ({ default: module.DocumentEditor }))
 );
 
-// WHY: Word/Docs shell — one slim app bar on top (back + title + view toggle).
-// Export lives under a single Export menu: in the toolbar for Edit mode,
-// in a slim bar above the preview for Pages mode. No scattered export buttons.
+// WHY: Word/Docs shell — one slim app bar on top (back + title + status,
+// view switch, Export). Export is a document action so it lives here in Edit
+// mode (and in the slim bar above the preview for Pages mode).
 interface EditorPageProperties {
   documentId: string;
   onBack: () => void;
@@ -123,15 +121,15 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
 
   if (error && !document) {
     return (
-      <div className="mx-auto max-w-3xl p-6">
-        <p className="rounded-md border border-border bg-muted p-4 text-sm">{error}</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}><ArrowLeft /> Back</Button>
+      <div className="fly-page-narrow flex flex-col items-start gap-4">
+        <p className="cds--type-body-01 fly-banner w-full rounded-md bg-muted">{error}</p>
+        <Button kind="tertiary" renderIcon={ArrowLeft} onClick={onBack}>Back</Button>
       </div>
     );
   }
 
   if (!document) {
-    return <p className="mx-auto max-w-3xl p-6 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="cds--type-body-01 fly-page-narrow text-muted-foreground">Loading…</p>;
   }
 
   const exportJson = liveJson ?? document.contentJson;
@@ -159,13 +157,13 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
       {/* Docs-style title row. In edit mode it has NO bottom border so the title
           flows seamlessly into the ribbon below (your ask); the ribbon draws
           the single divider under itself. Pages mode keeps its border. */}
-      <header ref={headerRef} className={`no-print sticky top-0 z-20 bg-background ${viewMode === "edit" ? "" : "border-b border-border"}`}>
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2">
+      <header ref={headerRef} className={`fly-title-row no-print sticky top-0 z-20 bg-background ${viewMode === "edit" ? "" : "fly-title-row-bordered"}`}>
+        <div className="flex flex-wrap items-center gap-2">
           {/* WHY: No in-app back button — browser back returns to the list
               (App syncs views to history). Title row holds title + status,
               with the icon-only Edit/Pages toggle pinned at the far end so
               the ribbon below stays purely for formatting. */}
-          <Input
+          <input
             value={titleDraft}
             onChange={(event) => setTitleDraft(event.target.value)}
             onBlur={() => void handleRename()}
@@ -173,40 +171,58 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
             aria-label="Document title"
             maxLength={200}
             placeholder="Untitled document"
-            className="max-w-md border-transparent bg-transparent text-base font-medium hover:border-input focus:border-input"
+            className="fly-title-input max-w-md rounded-md bg-transparent text-base font-medium outline-none transition-colors"
             // WHY: Width follows the title length (ch units) instead of flex-1
             // stretching — keeps "Last saved" snug next to short titles.
             style={{ width: `${Math.min(64, Math.max(14, titleDraft.length + 2))}ch` }}
           />
-          <span className="hidden text-xs text-muted-foreground sm:inline">{status}</span>
-          <ToggleGroup
-            type="single"
-            value={viewMode}
-            onValueChange={(value) => {
-              if (value === "edit" || value === "pages") setViewMode(value);
-            }}
-            aria-label="View mode"
-            className="ml-auto rounded-md border border-transparent p-0.5 hover:border-input focus-within:border-input"
-          >
-            <ToggleGroupItem value="edit" aria-label="Edit view" title="Edit">
-              <PenLineIcon />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="pages" aria-label="Pages view" title="View pages">
-              <Eye />
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <span className="cds--type-body-compact-01 hidden text-muted-foreground sm:inline">{status}</span>
+          {/* WHY: Icon switcher for Edit / read-only Pages. Two nested plain
+              wrappers: the outer is exactly the zoom's width (w-28) so both
+              right edges land on the same line; the inner hugs content width
+              and pins right, giving the small-on-top look. (Widths live on
+              plain divs — Carbon's switcher is 100% wide and beats width
+              utilities placed on itself.) */}
+          <div className="fly-push-right w-28">
+            <div className="fly-push-right w-fit">
+              <ContentSwitcher
+                size="sm"
+                selectedIndex={viewMode === "edit" ? 0 : 1}
+                onChange={(params) => setViewMode(params.index === 1 ? "pages" : "edit")}
+              >
+              <IconSwitch name="edit" text="Edit" align="bottom">
+                <Edit />
+              </IconSwitch>
+              <IconSwitch name="pages" text="Pages" align="bottom">
+                <View />
+              </IconSwitch>
+              </ContentSwitcher>
+            </div>
+          </div>
+          {/* WHY: Export is a document-level action, not inline editing — it
+              lives in the header in Edit mode (Pages mode keeps its slim bar
+              menu below). */}
+          {viewMode === "edit" && document ? (
+            <ExportMenu
+              documentTitle={document.title}
+              contentJson={exportJson}
+              contentHtml={exportHtml}
+              pageMargins={liveSetupValue.margins}
+              paperSizeMm={{ widthMm: liveSetupValue.paperWidthMm, heightMm: liveSetupValue.paperHeightMm }}
+              onError={(message) => setError(message)}
+            />
+          ) : null}
         </div>
-        {error ? <p className="mx-4 mb-2 rounded-md border border-border bg-muted p-2 text-sm">{error}</p> : null}
+        {error ? <p className="cds--type-body-01 fly-banner-sm fly-title-error rounded-md bg-muted">{error}</p> : null}
       </header>
 
       {/* Center canvas */}
       <main className="flex min-h-0 flex-1 flex-col">
         {viewMode === "edit" ? (
-          <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading editor…</p>}>
+          <Suspense fallback={<p className="cds--type-body-01 fly-pad-06 text-muted-foreground">Loading editor…</p>}>
             <DocumentEditor
               documentId={document.id}
               initialContentJson={document.contentJson}
-              editableTitle={titleDraft || document.title}
               zoomPercent={zoomPercent}
               onZoomChange={setZoomPercent}
               pageSetup={liveSetupValue}
@@ -224,7 +240,7 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
           <div className="flex flex-1 flex-col">
             {/* Slim View bar: Export left, zoom right. Sticks like the edit
                 ribbon (same title-row offset) so long previews keep controls. */}
-            <div className="no-print sticky top-[calc(var(--editor-bar-top,53px)-1px)] z-10 flex items-center justify-between border-b border-border bg-background px-4 py-1.5">
+            <div className="fly-viewbar no-print sticky top-[calc(var(--editor-bar-top,53px)-1px)] z-10 flex items-center justify-between bg-background">
               <ExportMenu
                 documentTitle={document.title}
                 contentJson={exportJson}

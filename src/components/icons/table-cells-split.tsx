@@ -1,8 +1,7 @@
-import { createLucideIcon } from "lucide-react";
+import { createSvgIcon } from "./iconFactory";
 
-// WHY: Custom lucide-studio variant (the stock TableCellsSplit stays
-// available from lucide-react) — the Icon suffix avoids the name collision.
-export const TableCellsSplitIcon = createLucideIcon("table-cells-split", [
+// WHY: Custom drawn variant — the Icon suffix avoids a name collision.
+export const TableCellsSplitIcon = createSvgIcon("table-cells-split", [
   ["path",{"d":"M19 21H5","key":"150jfl"}],
   ["path",{"d":"M19 3a2 2 0 012 2","key":"165vzh"}],
   ["path",{"d":"M21 19a2 2 0 01-2 2","key":"9nkj6p"}],
