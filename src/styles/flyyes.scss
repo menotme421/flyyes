@@ -202,6 +202,7 @@
 }
 
 .fly-brand-lockup {
+  position: relative;
   display: flex;
   align-items: center;
 }
@@ -213,8 +214,15 @@
   align-items: center;
 }
 
+// WHY: Docs rides as a small badge above the logo's top-right corner
+// (superscript style), not beside it — side-by-side read as one odd word.
 .fly-brand-docs {
-  margin-left: spacing.$spacing-02;
+  position: absolute;
+  top: -7px;
+  right: -2px;
+  font-size: 11px;
+  line-height: 1;
+  margin-left: 0;
 }
 
 // WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
@@ -244,8 +252,19 @@
   padding: spacing.$spacing-03;
 }
 
+// WHY: Fixed panel width in unlayered CSS — the layered w-52 utility loses
+// to Carbon's max-content sizing, so wide content (the honeycomb) stretched
+// the panel past the viewport instead. The comb then scales to the panel.
 .fly-popover-panel-lg {
   padding: spacing.$spacing-04;
+  width: 13rem;
+}
+
+.fly-popover-panel-lg svg[role="group"] {
+  width: 100%;
+  max-width: 192px;
+  height: auto;
+  margin-inline: auto;
 }
 
 .fly-submenu-panel {
