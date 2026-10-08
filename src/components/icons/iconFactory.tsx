@@ -11,7 +11,7 @@ interface SvgIconProperties extends SVGProps<SVGSVGElement> {
 }
 
 export function createSvgIcon(displayName: string, nodes: IconNode) {
-  function SvgIcon({ size = 24, ...rest }: SvgIconProperties) {
+  function SvgIcon({ size = 24, style, ...rest }: SvgIconProperties) {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -23,6 +23,11 @@ export function createSvgIcon(displayName: string, nodes: IconNode) {
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
+        // WHY: Inline style beats Carbon's ghost-button rule
+        // (.cds--btn--ghost:not([disabled]) svg { fill: icon-primary }),
+        // which otherwise overrides the fill="none" attribute (attributes
+        // lose to any CSS) and paints every closed shape as a solid blob.
+        style={{ fill: "none", ...style }}
         {...rest}
       >
         {nodes.map(([tag, attrs]) => {
