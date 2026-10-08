@@ -68,7 +68,7 @@ function App() {
                     if (view.name !== "home") goBack();
                   }}
                 >
-                  <img src="brand-name-light.svg" alt="Flyyes" className="fly-brand-logo" />
+                  <img src="flyyes-white.svg" alt="Flyyes" className="fly-brand-logo" />
                   <span className="cds--type-body-compact-01 fly-brand-docs">Docs</span>
                 </HeaderName>
               </Header>
