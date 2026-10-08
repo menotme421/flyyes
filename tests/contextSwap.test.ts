@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveToolbarContext } from "@/editor/ContextTools";
+import { resolveToolbarContext } from "@/editor/toolbarOverflow";
 import { isSelectionInTable } from "@/editor/tableSelection";
 
 // WHY: The right-zone swap is selection-driven and the More button must never

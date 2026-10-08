@@ -29,8 +29,8 @@ import {
   LinkContextTools,
   TableContextTools,
   ToolbarSeparator,
-  resolveToolbarContext,
 } from "./ContextTools";
+import { PANEL_COLLAPSIBLE, resolveToolbarContext, useToolbarOverflow } from "./toolbarOverflow";
 
 // WHY: Ribbon order — history, Styles, Font essentials, Paragraph essentials
 // left (core, always visible); the right cluster swaps by selection (see
@@ -162,13 +162,30 @@ export function EditorToolbar({
     inTable: toolbarState.inTable,
     linkActive: toolbarState.link,
   });
+  // WHY: Responsive overflow (Word behavior) — the hook hides low-priority
+  // right-zone groups into the overflow menu while the ribbon overflows, so
+  // the bar stays one row on narrow screens instead of growing taller. Core
+  // never collapses; hidden ids reset on every context swap.
+  // WHY: Element state (not a ref object) — the ribbon mounts after the
+  // editor initializes, so a ref object would stay null in the effect that
+  // ran before mount and the observer would never attach.
+  const [ribbonEl, setRibbonEl] = useState<HTMLDivElement | null>(null);
+  const hiddenIds = useToolbarOverflow(ribbonEl, PANEL_COLLAPSIBLE[context], context);
+  // WHY: Ultimate fallback — every collapsible group hidden yet still too
+  // wide means even the fixed minimum doesn't fit: let the swapped content
+  // wrap so the overflow anchor stays reachable instead of sliding
+  // off-screen. Wrapping a fitting row is a no-op, so this only ever bites
+  // on narrow screens.
+  const exhausted =
+    PANEL_COLLAPSIBLE[context].length > 0 &&
+    hiddenIds.length >= PANEL_COLLAPSIBLE[context].length;
 
   // WHY: Core row is always visible (every-paragraph tools, stable muscle
   // memory); the right cluster swaps its panel by selection with a slide
   // animation (see .fly-context-swap). Page setup + Zoom stay in the
   // default panel for this pass — they move to the title row on approval.
   return (
-    <div className="fly-ribbon flex items-stretch gap-0 bg-background">
+    <div ref={setRibbonEl} className="fly-ribbon flex items-stretch gap-0 bg-background">
       {/* 60% Core — every-paragraph formatting, always visible. */}
       <div role="group" aria-label="Core tools, 60 percent" className="fly-ribbon-core flex min-w-0 flex-wrap items-center gap-0">
         <div className="flex items-center gap-0">
@@ -336,18 +353,18 @@ export function EditorToolbar({
         role="group"
         aria-label={CONTEXT_LABELS[context]}
         aria-live="polite"
-        className="fly-ribbon-secondary flex min-w-0 flex-wrap items-center gap-0"
+        className="fly-ribbon-secondary flex min-w-0 flex-nowrap items-center gap-0"
       >
         {/* WHY: key remounts on context change so the slide animation
             replays per swap (see .fly-context-swap). The More button never
             triggers a swap — selection alone decides. */}
-        <div key={context} className="fly-context-swap flex min-w-0 flex-wrap items-center gap-0">
+        <div key={context} className={`fly-context-swap flex min-w-0 items-center gap-0 ${exhausted ? "flex-wrap" : "flex-nowrap"}`}>
           {context === "image" ? (
-            <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} />
+            <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} hiddenIds={hiddenIds} />
           ) : context === "table" ? (
-            <TableContextTools editor={editor} snapshot={toolbarState} />
+            <TableContextTools editor={editor} snapshot={toolbarState} hiddenIds={hiddenIds} />
           ) : context === "link" ? (
-            <LinkContextTools editor={editor} snapshot={toolbarState} />
+            <LinkContextTools editor={editor} snapshot={toolbarState} hiddenIds={hiddenIds} />
           ) : (
             <DefaultSecondaryTools
               editor={editor}
@@ -359,6 +376,7 @@ export function EditorToolbar({
               zoomPercent={zoomPercent}
               onZoomChange={onZoomChange}
               onSearchOpen={onSearchOpen}
+              hiddenIds={hiddenIds}
             />
           )}
         </div>
