@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import {
-  BorderFull,
   Checkmark,
   Code,
   ColorPalette,
@@ -14,9 +13,6 @@ import {
   Quotes,
   Row,
   Search,
-  TextAlignCenter,
-  TextAlignLeft,
-  TextAlignRight,
   TextIndentLess,
   TextIndentMore,
   TextStrikethrough,
@@ -31,6 +27,10 @@ import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
 import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
+import { TableAlignCenterIcon } from "@/components/icons/table-align-center";
+import { TableAlignLeftIcon } from "@/components/icons/table-align-left";
+import { TableAlignRightIcon } from "@/components/icons/table-align-right";
+import { TableBordersIcon } from "@/components/icons/table-borders";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
 import { PageSetupDialog } from "@/components/PageSetupDialog";
@@ -546,9 +546,9 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
       sectionLabel: "Table alignment",
       priority: 10,
       tools: [
-        { id: "alignleft", label: "Align table left", icon: <TextAlignLeft />, active: snapshot.tableAlignment === "left", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: null }).run() },
-        { id: "aligncenter", label: "Align table center", icon: <TextAlignCenter />, active: snapshot.tableAlignment === "center", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "center" }).run() },
-        { id: "alignright", label: "Align table right", icon: <TextAlignRight />, active: snapshot.tableAlignment === "right", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "right" }).run() },
+        { id: "alignleft", label: "Align table left", icon: <TableAlignLeftIcon />, active: snapshot.tableAlignment === "left", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: null }).run() },
+        { id: "aligncenter", label: "Align table center", icon: <TableAlignCenterIcon />, active: snapshot.tableAlignment === "center", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "center" }).run() },
+        { id: "alignright", label: "Align table right", icon: <TableAlignRightIcon />, active: snapshot.tableAlignment === "right", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "right" }).run() },
       ],
     },
     {
@@ -558,7 +558,7 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
       tools: [{
         id: "borders",
         label: "Borders",
-        icon: <BorderFull />,
+          icon: <TableBordersIcon />,
         active: snapshot.bordersOn,
         run: () => editor.chain().focus().updateAttributes("table", { borderless: snapshot.bordersOn }).run(),
       }],

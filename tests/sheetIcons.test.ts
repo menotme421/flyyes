@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LayoutListMove } from "@/components/icons/layout-list-move";
 import { SheetCells } from "@/components/icons/sheet-cells";
+import { TableAlignCenterIcon } from "@/components/icons/table-align-center";
+import { TableAlignLeftIcon } from "@/components/icons/table-align-left";
+import { TableAlignRightIcon } from "@/components/icons/table-align-right";
+import { TableBordersIcon } from "@/components/icons/table-borders";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
 import { SheetColumns } from "@/components/icons/sheet-columns";
@@ -65,6 +69,10 @@ describe("owned sheet icons", () => {
       SheetColumnRight,
       TableCellsMergeIcon,
       TableCellsSplitIcon,
+      TableAlignLeftIcon,
+      TableAlignCenterIcon,
+      TableAlignRightIcon,
+      TableBordersIcon,
     ];
     for (const Icon of icons) {
       const markup = renderToStaticMarkup(Icon({} as never) as never);
