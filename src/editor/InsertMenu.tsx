@@ -45,6 +45,7 @@ export function ImageMenu({ editor }: { editor: Editor }) {
           size="sm"
           label="Insert image"
           align="bottom"
+          autoAlign
           onClick={() => setOpen((currently) => !currently)}
         >
           <Image />
@@ -110,6 +111,7 @@ export function TableInsert({ editor }: { editor: Editor }) {
         size="sm"
         label="Insert table"
         align="bottom"
+        autoAlign
         onClick={() => setOpen((currently) => !currently)}
       >
         <Table />

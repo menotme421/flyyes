@@ -102,8 +102,9 @@ function ContextButton({ title, active, disabled, onClick, children }: {
 }) {
   // WHY: Same Carbon IconButton chrome as the core row (tooltip + selected
   // state) so swapped panels read as the same bar, not a different UI.
+  // autoAlign flips edge tooltips (right-edge buttons) back on screen.
   return (
-    <IconButton kind="ghost" size="sm" label={title} align="bottom" isSelected={active} disabled={disabled} onClick={onClick}>
+    <IconButton kind="ghost" size="sm" label={title} align="bottom" autoAlign isSelected={active} disabled={disabled} onClick={onClick}>
       {children}
     </IconButton>
   );
@@ -188,6 +189,7 @@ function PanelOverflowMenu({ label, sections }: {
         size="sm"
         label={hiddenCount > 0 ? `${label} (${hiddenCount} more)` : label}
         align="bottom"
+        autoAlign
         onClick={() => setOpen((currently) => !currently)}
       >
         <OverflowMenuVertical />
@@ -593,7 +595,7 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
                 onClear={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
                 clearLabel="No fill"
               >
-                <IconButton kind="ghost" size="sm" label="Cell fill" align="bottom">
+                <IconButton kind="ghost" size="sm" label="Cell fill" align="bottom" autoAlign>
                   <span className="flex flex-col items-center leading-none">
                     <ColorPalette className="h-4 w-4" />
                     <span

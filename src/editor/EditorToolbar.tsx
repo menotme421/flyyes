@@ -280,7 +280,7 @@ export function EditorToolbar({
             // Commands apply to the stored selection while unfocused.
             onSelect={(hex) => editor.chain().setColor(hex).run()}
           >
-            <IconButton kind="ghost" size="sm" label="Text color" align="bottom">
+            <IconButton kind="ghost" size="sm" label="Text color" align="bottom" autoAlign>
               {/* WHY: Word-style current-color bar under the icon (not a tinted
                   icon) so the chosen color reads at a glance. The A itself is
                   pinned to foreground — ghost buttons tint text link-blue. */}
@@ -299,7 +299,7 @@ export function EditorToolbar({
             value={toolbarState.highlightColor}
             onSelect={(hex) => editor.chain().toggleHighlight({ color: hex }).run()}
           >
-            <IconButton kind="ghost" size="sm" label="Highlight color" align="bottom">
+            <IconButton kind="ghost" size="sm" label="Highlight color" align="bottom" autoAlign>
               <span className="flex flex-col items-center leading-none">
                 <TextHighlight className="h-4 w-4" />
                 <span
@@ -393,8 +393,9 @@ function ToolbarButton({ title, active, onClick, children }: {
 }) {
   // WHY: Carbon IconButton carries its own tooltip (label) + selected state —
   // no wrapper needed. Tooltip appears below like the old custom one.
+  // autoAlign flips edge tooltips (right-edge buttons) back on screen.
   return (
-    <IconButton kind="ghost" size="sm" label={title} align="bottom" isSelected={active} onClick={onClick}>
+    <IconButton kind="ghost" size="sm" label={title} align="bottom" autoAlign isSelected={active} onClick={onClick}>
       {children}
     </IconButton>
   );
