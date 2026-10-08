@@ -63,13 +63,14 @@ function App() {
                   prefix=""
                   className="fly-brand-lockup"
                   href="#"
+                  aria-label="Flyyes Docs"
                   onClick={(event) => {
                     event.preventDefault();
                     if (view.name !== "home") goBack();
                   }}
                 >
-                  <img src="flyyes-white.svg" alt="Flyyes" className="fly-brand-logo" />
-                  <span className="cds--type-body-02 fly-brand-docs">Docs</span>
+                  <span className="fly-brand-name">Flyyes</span>
+                  <span className="cds--type-body-compact-01 fly-brand-docs">Docs</span>
                 </HeaderName>
               </Header>
             </Theme>
