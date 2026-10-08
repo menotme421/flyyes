@@ -214,12 +214,23 @@
   align-items: center;
 }
 
-// WHY: Unified Carbon typography lockup — the pixel mark keeps its voice
-// while Docs uses the standard Carbon face (body-compact-01, 14px Plex Sans
-// regular, normal case): one personality plus one clear name, no mixed
-// badge dialect. Only the non-tokenizable bits stay custom: an 8px spacing
-// token gap and a 1px optical lift against the glyph mass.
+// WHY: Brand wordmark in Plex Serif Regular — Carbon's documented serif
+// stack, the sanctioned voice for brand moments. The serif logo + serif
+// wordmark read as one family; UI text stays Plex Sans everywhere else.
+// Single weight on purpose (one 67KB woff2, cached); the bundler must emit
+// IBMPlexSerif-Regular.woff2 into dist or this rule silently falls back.
+@font-face {
+  font-family: "Flyyes Brand Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("@ibm/plex/IBM-Plex-Serif/fonts/complete/woff2/IBMPlexSerif-Regular.woff2") format("woff2");
+}
+
 .fly-brand-docs {
+  font-family: "Flyyes Brand Serif", "IBM Plex Serif", Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
   margin-left: spacing.$spacing-03;
   transform: translateY(-1px);
 }
