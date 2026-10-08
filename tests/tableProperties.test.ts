@@ -3,6 +3,7 @@ import {
   normalizeBorderless,
   normalizeCellBackground,
   normalizeTableAlignment,
+  normalizeVerticalAlignment,
 } from "@/editor/tablePropertiesExtension";
 
 // WHY: Styling attrs flow into HTML, preview CSS, and DOCX — unvalidated values
@@ -26,6 +27,14 @@ describe("table property normalizers", () => {
     expect(normalizeTableAlignment("left")).toBe("left");
     expect(normalizeTableAlignment("justify")).toBeNull();
     expect(normalizeTableAlignment(undefined)).toBeNull();
+  });
+
+  it("accepts only known vertical alignments", () => {
+    expect(normalizeVerticalAlignment("top")).toBe("top");
+    expect(normalizeVerticalAlignment("middle")).toBe("middle");
+    expect(normalizeVerticalAlignment("bottom")).toBe("bottom");
+    expect(normalizeVerticalAlignment("baseline")).toBeNull();
+    expect(normalizeVerticalAlignment(undefined)).toBeNull();
   });
 
   it("treats borderless as strictly boolean", () => {

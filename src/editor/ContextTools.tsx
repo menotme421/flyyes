@@ -26,14 +26,14 @@ import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
 import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
-import { TableAlignCenterIcon } from "@/components/icons/table-align-center";
-import { TableAlignLeftIcon } from "@/components/icons/table-align-left";
-import { TableAlignRightIcon } from "@/components/icons/table-align-right";
 import { TableBordersIcon } from "@/components/icons/table-borders";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
 import { UrlDialog } from "@/components/UrlDialog";
-import type { TableAlignment } from "./tablePropertiesExtension";
+import type { VerticalAlignment } from "./tablePropertiesExtension";
+import { TableValignBottomIcon } from "@/components/icons/table-valign-bottom";
+import { TableValignMiddleIcon } from "@/components/icons/table-valign-middle";
+import { TableValignTopIcon } from "@/components/icons/table-valign-top";
 import { ImageMenu, TableInsert } from "./InsertMenu";
 
 // WHY: Right-zone swap cluster (single responsibility) — every non-core tool
@@ -75,7 +75,7 @@ export interface TableContextSnapshot {
   headerColumnOn: boolean;
   cellFill: string | null;
   bordersOn: boolean;
-  tableAlignment: TableAlignment;
+  cellVertical: VerticalAlignment;
 }
 
 export interface LinkContextSnapshot {
@@ -536,13 +536,13 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
       ],
     },
     {
-      id: "tablealign",
-      sectionLabel: "Table alignment",
+      id: "cellvalign",
+      sectionLabel: "Cell vertical alignment",
       priority: 10,
       tools: [
-        { id: "alignleft", label: "Align table left", icon: <TableAlignLeftIcon />, active: snapshot.tableAlignment === "left", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: null }).run() },
-        { id: "aligncenter", label: "Align table center", icon: <TableAlignCenterIcon />, active: snapshot.tableAlignment === "center", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "center" }).run() },
-        { id: "alignright", label: "Align table right", icon: <TableAlignRightIcon />, active: snapshot.tableAlignment === "right", run: () => editor.chain().focus().updateAttributes("table", { tableAlignment: "right" }).run() },
+        { id: "valigntop", label: "Align text top", icon: <TableValignTopIcon />, active: snapshot.cellVertical === "top", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "top").run() },
+        { id: "valignmiddle", label: "Align text middle", icon: <TableValignMiddleIcon />, active: snapshot.cellVertical === "middle", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", null).run() },
+        { id: "valignbottom", label: "Align text bottom", icon: <TableValignBottomIcon />, active: snapshot.cellVertical === "bottom", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "bottom").run() },
       ],
     },
     {
@@ -602,7 +602,7 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
           ),
         },
         visible("borders") && { key: "borders", node: <BarGroup group={groupById("borders")} /> },
-        visible("tablealign") && { key: "tablealign", node: <BarGroup group={groupById("tablealign")} /> },
+        visible("cellvalign") && { key: "cellvalign", node: <BarGroup group={groupById("cellvalign")} /> },
         hiddenSections.length > 0 && {
           key: "overflow",
           node: <PanelOverflowMenu label="More tools" sections={hiddenSections} />,

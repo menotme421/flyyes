@@ -51,7 +51,7 @@ export async function exportJsonToDocx(
 
   try {
     // Lazy-load heavy docx builder only on export click.
-    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak } =
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak, VerticalAlign } =
       await import("docx");
 
     const children: (InstanceType<typeof Paragraph> | InstanceType<typeof Table>)[] = [];
@@ -61,7 +61,7 @@ export async function exportJsonToDocx(
     const nodes = [...(parsed.content ?? [])];
     while (nodes.length > 0 && nodes[nodes.length - 1]?.type === "horizontalRule") nodes.pop();
     for (const node of nodes) {
-      const converted = await convertNode(node, { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak }, imageContext);
+      const converted = await convertNode(node, { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak, VerticalAlign }, imageContext);
       if (!converted) continue;
       // WHY: Lists expand to multiple paragraphs — flatten the marker object.
       if (typeof converted === "object" && converted !== null && "__multi" in (converted as Record<string, unknown>)) {
@@ -119,7 +119,7 @@ export async function exportJsonToDocx(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function convertNode(node: TipTapNode, lib: any, imageContext: ImageExportContext): Promise<unknown | null> {
-  const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak } = lib;
+  const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell, ImageRun, PageBreak, VerticalAlign } = lib;
 
   switch (node.type) {
     case "heading": {
@@ -202,10 +202,20 @@ async function convertNode(node: TipTapNode, lib: any, imageContext: ImageExport
             (child) => child.type === "paragraph" || child.type === "heading"
           );
           const cellAlign = firstBlock?.attrs?.textAlign as string | undefined;
+          // WHY: Cell vertical alignment exports explicitly (middle included)
+          // so Word matches the edit surface even where Word's own default
+          // would differ — same mirror-what-you-see rule as shading above.
+          const cellVertical = cell.attrs?.verticalAlignment as string | undefined;
           return new TableCell({
             columnSpan: colspan > 1 ? colspan : undefined,
             rowSpan: rowspan > 1 ? rowspan : undefined,
             shading: cellBg ? { fill: cellBg } : headerShade ? { fill: headerShade } : undefined,
+            verticalAlign:
+              cellVertical === "top"
+                ? VerticalAlign.TOP
+                : cellVertical === "bottom"
+                  ? VerticalAlign.BOTTOM
+                  : VerticalAlign.CENTER,
             children: [
               new Paragraph({
                 alignment: mapAlign(cellAlign, AlignmentType),

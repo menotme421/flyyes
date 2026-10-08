@@ -46,7 +46,7 @@ export const PANEL_COLLAPSIBLE: Record<ToolbarContext, OverflowGroupMeta[]> = {
     { id: "imagedelete", priority: 50 },
   ],
   table: [
-    { id: "tablealign", priority: 10 },
+    { id: "cellvalign", priority: 10 },
     { id: "borders", priority: 15 },
     { id: "cells", priority: 30 },
     { id: "cols", priority: 40 },

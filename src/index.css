@@ -233,6 +233,12 @@ body {
   border: 1px solid var(--border);
   padding: 0.4em 0.6em;
   text-align: left;
+  /* WHY: App default cell alignment is middle (explicitly, not the CSS
+     baseline initial value) — unset cells, the Middle toolbar/menu state,
+     and DOCX export (CENTER) all agree, so nothing ever disagrees about
+     what an unstyled cell looks like. Explicit top/bottom ride on inline
+     styles from the extension and win over this. */
+  vertical-align: middle;
   /* WHY: Positioning context for the column-resize handle below. No visual
      change on its own (no offsets) and no abspos children besides the handle. */
   position: relative;

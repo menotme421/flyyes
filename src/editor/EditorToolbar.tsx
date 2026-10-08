@@ -18,7 +18,7 @@ import {
 import { Dropdown, IconButton } from "@carbon/react";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, WORD_FONT_FAMILIES, WORD_FONT_SIZES } from "@/editor/editorExtensions";
 import { ColorPicker } from "@/components/ColorPicker";
-import { normalizeTableAlignment } from "./tablePropertiesExtension";
+import { normalizeVerticalAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, isSelectionInTable } from "./tableSelection";
 import {
   DefaultSecondaryTools,
@@ -132,10 +132,7 @@ export function EditorToolbar({
         // can never disagree about fill, borders, or alignment.
         cellFill: cellBackground(liveEditor),
         bordersOn: (liveEditor.getAttributes("table") as { borderless?: unknown }).borderless !== true,
-        tableAlignment:
-          normalizeTableAlignment(
-            (liveEditor.getAttributes("table") as { tableAlignment?: unknown }).tableAlignment
-          ) ?? "left",
+        cellVertical: cellVerticalAlignment(liveEditor),
       };
     },
   });
@@ -381,6 +378,19 @@ function ToolbarButton({ title, active, onClick, children }: {
       {children}
     </IconButton>
   );
+}
+
+// WHY: Unset vertical alignment renders middle via the .tiptap default
+// (the raw browser initial is baseline — probed, so the app sets its own),
+// so null reads as middle and the Middle button shows active truthfully.
+function cellVerticalAlignment(liveEditor: Editor): "top" | "middle" | "bottom" {
+  try {
+    const cell = liveEditor.getAttributes("tableCell") as { verticalAlignment?: unknown };
+    const header = liveEditor.getAttributes("tableHeader") as { verticalAlignment?: unknown };
+    return normalizeVerticalAlignment(cell.verticalAlignment ?? header.verticalAlignment) ?? "middle";
+  } catch {
+    return "middle";
+  }
 }
 
 // WHY: Cell fill reads tableCell first, tableHeader second — a header-cell

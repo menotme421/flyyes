@@ -10,7 +10,7 @@ import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
-import { normalizeTableAlignment } from "./tablePropertiesExtension";
+import { normalizeVerticalAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, shouldPreserveSelection } from "./tableSelection";
 
 // WHY: Carbon Menu with grouped sections — Carbon menus have no flyout
@@ -113,11 +113,12 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
       const liveEditor = snapshot.editor;
       const tableAttrs = liveEditor.getAttributes("table") as {
         borderless?: unknown;
-        tableAlignment?: unknown;
       };
+      const cellAttrs = liveEditor.getAttributes("tableCell") as { verticalAlignment?: unknown };
+      const headerAttrs = liveEditor.getAttributes("tableHeader") as { verticalAlignment?: unknown };
       return {
         bordersOn: tableAttrs.borderless !== true,
-        alignment: normalizeTableAlignment(tableAttrs.tableAlignment) ?? "left",
+        cellVertical: normalizeVerticalAlignment(cellAttrs.verticalAlignment ?? headerAttrs.verticalAlignment) ?? "middle",
         headerOn: isHeaderRowActive(liveEditor.state.selection),
         headerColumnOn: isHeaderColumnActive(liveEditor.state.selection),
         canToggleHeaderColumn: liveEditor.can().toggleHeaderColumn(),
@@ -134,7 +135,7 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
       };
     },
   });
-  const { bordersOn, alignment, headerOn, headerColumnOn } = menuState;
+  const { bordersOn, cellVertical, headerOn, headerColumnOn } = menuState;
   const [customFillOpen, setCustomFillOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -269,16 +270,16 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                   )}
                 />
                 <MenuItemRadioGroup
-                  label="Table alignment"
-                  items={["left", "center", "right"]}
+                  label="Cell vertical alignment"
+                  items={["top", "middle", "bottom"]}
                   itemToString={(item) => `Align ${String(item)}`}
-                  selectedItem={alignment}
+                  selectedItem={cellVertical}
                   onChange={runAndClose((...args: unknown[]) => {
-                    const next = normalizeTableAlignment(args[0]) ?? "left";
+                    const next = normalizeVerticalAlignment(args[0]) ?? "middle";
                     editor
                       .chain()
                       .focus()
-                      .updateAttributes("table", { tableAlignment: next === "left" ? null : next })
+                      .setCellAttribute("verticalAlignment", next === "middle" ? null : next)
                       .run();
                   })}
                 />

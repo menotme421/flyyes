@@ -2,10 +2,15 @@ import { Extension } from "@tiptap/core";
 
 // WHY: Word-style table properties as a tiny owned extension (no new dependency).
 // TipTap ships the *commands* (setCellAttribute, updateAttributes) but no styling
-// attributes, so we declare three: cell background, table borders on/off, table alignment.
+// attributes, so we declare four: cell background, cell vertical alignment,
+// table borders on/off, table alignment. Table alignment stays supported for
+// legacy documents (render + DOCX) but has no UI — cell vertical alignment
+// replaced it in the bar and the menu.
 // Styling renders as inline style / data attrs so HTML, preview, and DOCX all see it.
 
 export type TableAlignment = "left" | "center" | "right";
+
+export type VerticalAlignment = "top" | "middle" | "bottom";
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -19,6 +24,14 @@ export function normalizeCellBackground(value: unknown): string | null {
 
 export function normalizeTableAlignment(value: unknown): TableAlignment | null {
   return value === "center" || value === "right" || value === "left"
+    ? value
+    : null;
+}
+
+// WHY: Strict allowlist like the rest — pasted vertical-align values outside
+// top/middle/bottom (or baseline soup from Word HTML) fall back to default.
+export function normalizeVerticalAlignment(value: unknown): VerticalAlignment | null {
+  return value === "top" || value === "middle" || value === "bottom"
     ? value
     : null;
 }
@@ -43,6 +56,16 @@ export const TableProperties = Extension.create({
               const color = normalizeCellBackground(attributes.backgroundColor);
               if (!color) return {};
               return { "data-cell-bg": color, style: `background-color: ${color}` };
+            },
+          },
+          verticalAlignment: {
+            default: null,
+            parseHTML: (element) =>
+              normalizeVerticalAlignment(element.style.verticalAlign || element.getAttribute("data-cell-valign")),
+            renderHTML: (attributes) => {
+              const vertical = normalizeVerticalAlignment(attributes.verticalAlignment);
+              if (!vertical || vertical === "middle") return {};
+              return { "data-cell-valign": vertical, style: `vertical-align: ${vertical}` };
             },
           },
         },
