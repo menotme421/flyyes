@@ -1,5 +1,5 @@
 import { useEditorState, type Editor } from "@tiptap/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ListBulleted,
   ListNumbered,
@@ -139,14 +139,31 @@ export function EditorToolbar({
   const currentFontFamily = toolbarState.fontFamily;
   const currentFontSize = toolbarState.fontSize;
   const previousLink = toolbarState.linkHref;
+  // WHY: Freshly opened documents show the default panel until the first
+  // interaction — ProseMirror parks the initial caret inside the first
+  // table cell when the doc starts with a table, which otherwise greets
+  // the user with table tools for a table they never touched. Any
+  // transaction (click, keypress, selection move) lifts the override.
+  const touchedRef = useRef(false);
+  useEffect(() => {
+    const markTouched = () => {
+      touchedRef.current = true;
+    };
+    editor.on("transaction", markTouched);
+    return () => {
+      editor.off("transaction", markTouched);
+    };
+  }, [editor]);
   // WHY: The right zone earns its panel from the selection alone — the More
   // button never triggers a swap (user decision). Priority lives in
   // resolveToolbarContext so the rule is unit-tested, not eyeballed.
-  const context = resolveToolbarContext({
-    imageSelected: toolbarState.imageSelected,
-    inTable: toolbarState.inTable,
-    linkActive: toolbarState.link,
-  });
+  const context = touchedRef.current
+    ? resolveToolbarContext({
+        imageSelected: toolbarState.imageSelected,
+        inTable: toolbarState.inTable,
+        linkActive: toolbarState.link,
+      })
+    : "default";
   // WHY: Responsive overflow (Word behavior) — the hook hides low-priority
   // right-zone groups into the overflow menu while the ribbon overflows, so
   // the bar stays one row on narrow screens instead of growing taller. Core
