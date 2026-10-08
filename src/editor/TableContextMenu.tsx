@@ -6,7 +6,7 @@ import { Menu, MenuItem, MenuItemDivider, MenuItemGroup, MenuItemRadioGroup, Men
 import { ColorPickerDialog } from "@/components/ColorPicker";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
-import { RowAboveTrialIcon } from "@/components/icons/row-above-trial";
+import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
@@ -172,7 +172,7 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
               <MenuItemGroup label="Rows">
                 <MenuItem
                   label="Row above"
-                  renderIcon={RowAboveTrialIcon}
+                  renderIcon={SheetRowAbove}
                   disabled={!menuState.canAddRowBefore}
                   onClick={runAndClose(() => editor.chain().focus().addRowBefore().run())}
                 />

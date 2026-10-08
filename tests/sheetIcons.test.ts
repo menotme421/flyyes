@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { LayoutListMove } from "@/components/icons/layout-list-move";
 import { SheetCells } from "@/components/icons/sheet-cells";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
@@ -38,8 +39,9 @@ describe("owned sheet icons", () => {
     // WHY: Carbon ghost buttons restyle child SVGs two ways (attributes lose
     // to any CSS): a fill rule that blobbed every closed shape solid black,
     // and blue button text bleeding through stroke="currentColor". Inline
-    // styles win over stylesheets on both.
-    const markup = renderToStaticMarkup(SheetRowAbove({} as never) as never);
+    // styles win over stylesheets on both. Uses a stroke icon — the table
+    // icons are Carbon fills natively (covered by the 32-grid test below).
+    const markup = renderToStaticMarkup(LayoutListMove({} as never) as never);
     expect(markup).toContain("fill:none");
     expect(markup).toContain("cds-icon-primary");
   });
@@ -50,5 +52,24 @@ describe("owned sheet icons", () => {
     const markup = renderToStaticMarkup(SheetRowAbove({} as never) as never);
     expect(markup).toContain('width="16"');
     expect(markup).toContain('height="16"');
+  });
+
+  it("draws table icons on Carbon's 32-grid fill system", () => {
+    // WHY: The six table icons were redrawn from Carbon's own motifs
+    // (RowInsert rings/chevrons, TableSplit grid) — 32-grid filled geometry
+    // renders true 1px lines at 16px, exactly like @carbon/icons-react.
+    const icons = [
+      SheetRowAbove,
+      SheetRowBelow,
+      SheetColumnLeft,
+      SheetColumnRight,
+      TableCellsMergeIcon,
+      TableCellsSplitIcon,
+    ];
+    for (const Icon of icons) {
+      const markup = renderToStaticMarkup(Icon({} as never) as never);
+      expect(markup).toContain('viewBox="0 0 32 32"');
+      expect(markup).toContain('fill="currentColor"');
+    }
   });
 });

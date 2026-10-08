@@ -1,11 +1,9 @@
-import { createSvgIcon } from "./iconFactory";
+import { createCarbonIcon } from "./iconFactory";
 
-export const SheetRowAbove = createSvgIcon("sheet-row-above", [
-  ["path",{"d":"M3 5h18","key":"1u36vt"}],
-  ["path",{"d":"M3 7h18","key":"1uiuf2"}],
-  ["line",{"x1":"15","y1":"9","x2":"15","y2":"21","key":"13a17d"}],
-  ["line",{"x1":"3","y1":"15","x2":"21","y2":"15","key":"1xojw2"}],
-  ["line",{"x1":"3","y1":"9","x2":"21","y2":"9","key":"1uch6j"}],
-  ["line",{"x1":"9","y1":"9","x2":"9","y2":"21","key":"x5ianl"}],
-  ["rect",{"x":"3","y":"3","width":"18","height":"18","rx":"2","ry":"2","key":"maln0c"}]
+// WHY: Carbon 32-grid redraw, round 2 — one full-width row ring (the current
+// row) with ColumnInsert's up chevron floating above it (round 1 overlapped
+// ring and chevron into one mass). Separation reads as direction at 16px.
+export const SheetRowAbove = createCarbonIcon("sheet-row-above", [
+  ["path",{d:"M28,30H4A2,2,0,0,1,2,28V22A2,2,0,0,1,4,20H28A2,2,0,0,1,30,22V28A2,2,0,0,1,28,30ZM4,20H28V28H4Z",fillRule:"evenodd",key:"ring"}],
+  ["path",{d:"M16 13 21.586 7.414 20.172 6 16 10.172 11.828 6 10.414 7.414 16 13z",key:"chevup"}]
 ]);

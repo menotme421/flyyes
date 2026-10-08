@@ -1,11 +1,9 @@
-import { createSvgIcon } from "./iconFactory";
+import { createCarbonIcon } from "./iconFactory";
 
-export const SheetColumnLeft = createSvgIcon("sheet-column-left", [
-  ["path",{"d":"M15 3v18","key":"14nvp0"}],
-  ["path",{"d":"M3 15h18","key":"5xshup"}],
-  ["path",{"d":"M3 9h18","key":"1pudct"}],
-  ["path",{"d":"M5 3v18","key":"14hmio"}],
-  ["path",{"d":"M7 3v18","key":"bbkbws"}],
-  ["path",{"d":"M9 3v18","key":"fh3hqa"}],
-  ["rect",{"x":"3","y":"3","width":"18","height":"18","rx":"2","key":"h1oib"}]
+// WHY: Carbon 32-grid redraw, round 2 — one full-height column ring (the
+// current column) with RowInsert's left chevron floating left of it (round 1
+// overlapped ring and chevron, erasing the direction cue entirely).
+export const SheetColumnLeft = createCarbonIcon("sheet-column-left", [
+  ["path",{d:"M28,30H22A2,2,0,0,1,20,28V4A2,2,0,0,1,22,2H28A2,2,0,0,1,30,4V28A2,2,0,0,1,28,30ZM22,4H28V28H22Z",fillRule:"evenodd",key:"ring"}],
+  ["path",{d:"M12 16 6.414 10.414 5 11.828 9.172 16 5 20.172 6.414 21.586 12 16z",key:"chevleft"}]
 ]);

@@ -1,11 +1,9 @@
-import { createSvgIcon } from "./iconFactory";
+import { createCarbonIcon } from "./iconFactory";
 
-export const SheetColumnRight = createSvgIcon("sheet-column-right", [
-  ["path",{"d":"M15 3v18","key":"14nvp0"}],
-  ["path",{"d":"M17 3v18","key":"in4fa5"}],
-  ["path",{"d":"M19 3v18","key":"1sk56x"}],
-  ["path",{"d":"M3 15h18","key":"5xshup"}],
-  ["path",{"d":"M3 9h18","key":"1pudct"}],
-  ["path",{"d":"M9 3v18","key":"fh3hqa"}],
-  ["rect",{"x":"3","y":"3","width":"18","height":"18","rx":"2","key":"h1oib"}]
+// WHY: Carbon 32-grid redraw, round 2 — one full-height column ring with a
+// right chevron floating right of it (left chevron mirrored about x=16;
+// solid shape so the winding flip is harmless).
+export const SheetColumnRight = createCarbonIcon("sheet-column-right", [
+  ["path",{d:"M10,30H4A2,2,0,0,1,2,28V4A2,2,0,0,1,4,2H10A2,2,0,0,1,12,4V28A2,2,0,0,1,10,30ZM4,4H10V28H4Z",fillRule:"evenodd",key:"ring"}],
+  ["path",{d:"M20 16 25.586 10.414 27 11.828 22.828 16 27 20.172 25.586 21.586 20 16z",key:"chevright"}]
 ]);

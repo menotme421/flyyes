@@ -21,7 +21,7 @@ import { Button, Dropdown, IconButton, Popover, PopoverContent } from "@carbon/r
 import { LayoutListMove } from "@/components/icons/layout-list-move";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
-import { RowAboveTrialIcon } from "@/components/icons/row-above-trial";
+import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
@@ -323,10 +323,8 @@ export function TableContextTools({ editor, snapshot }: {
   return (
     <>
       <div className="flex items-center gap-0 [&>*]:shrink-0" role="group" aria-label="Table rows">
-        {/* WHY: Studio-glyph trial ("between-horizontal-end") for Row above —
-            revert to SheetRowAbove if rejected (trial, not a decision). */}
         <ContextButton title="Row above" active={false} disabled={!snapshot.canAddRowBefore} onClick={() => editor.chain().focus().addRowBefore().run()}>
-          <RowAboveTrialIcon />
+          <SheetRowAbove />
         </ContextButton>
         <ContextButton title="Row below" active={false} disabled={!snapshot.canAddRowAfter} onClick={() => editor.chain().focus().addRowAfter().run()}>
           <SheetRowBelow />

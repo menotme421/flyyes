@@ -10,6 +10,36 @@ interface SvgIconProperties extends SVGProps<SVGSVGElement> {
   size?: number | string;
 }
 
+// WHY: Carbon-style companion to createSvgIcon — 32-grid filled geometry
+// (fill currentColor, no stroke, default 16) matching @carbon/icons-react
+// exactly, for glyphs Carbon never drew (directional table inserts). Native
+// fill needs no inline-style pins: the ghost-button fill rule resolves to
+// the same icon token these icons want.
+export function createCarbonIcon(displayName: string, nodes: IconNode) {
+  function CarbonIcon({ size = 16, ...rest }: SvgIconProperties) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 32 32"
+        fill="currentColor"
+        {...rest}
+      >
+        {nodes.map(([tag, attrs]) => {
+          const { key, ...properties } = attrs;
+          if (tag === "rect") return <rect key={key} {...properties} />;
+          if (tag === "circle") return <circle key={key} {...properties} />;
+          if (tag === "line") return <line key={key} {...properties} />;
+          return <path key={key} {...properties} />;
+        })}
+      </svg>
+    );
+  }
+  CarbonIcon.displayName = displayName;
+  return CarbonIcon;
+}
+
 export function createSvgIcon(displayName: string, nodes: IconNode) {
   // WHY: Default 16 matches Carbon icons inside 32px ghost buttons — 24
   // rendered 1.5x too big with 2px-true strokes next to Carbon's 1px.
