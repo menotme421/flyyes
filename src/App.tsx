@@ -69,7 +69,7 @@ function App() {
                   }}
                 >
                   <img src="brand-name-light.svg" alt="Flyyes" className="fly-brand-logo" />
-                  <span className="fly-brand-docs">Docs</span>
+                  <span className="cds--type-code-01 fly-brand-docs">Docs</span>
                 </HeaderName>
               </Header>
             </Theme>

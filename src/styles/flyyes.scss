@@ -214,18 +214,15 @@
   align-items: center;
 }
 
-// WHY: Unified brand lockup, not browser-default text beside a logo — Docs
-// speaks the mark's language: IBM Plex Mono (uniform advance echoes the
-// pixel grid), tracked uppercase badge sizing, fixed 10px gap, optically
-// centered to the glyph mass. Uppercase is visual only; screen readers and
-// the accessible name still read "Docs".
+// WHY: Unified brand lockup from Carbon's own shelf — cds--type-code-01
+// carries the mono badge voice (12px Plex Mono, native tracking) so Docs
+// echoes the pixel grid with zero hand-rolled type. Only the non-tokenizable
+// bits stay custom: uppercase badge casing, an 8px token gap, and a 1px
+// optical lift against the glyph mass. Uppercase is visual only; screen
+// readers and the accessible name still read "Docs".
 .fly-brand-docs {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-left: 10px;
+  margin-left: spacing.$spacing-03;
   transform: translateY(-1px);
 }
 
