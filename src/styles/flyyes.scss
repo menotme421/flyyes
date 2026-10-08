@@ -189,6 +189,34 @@
   margin-inline-start: auto;
 }
 
+// WHY: Brand wordmark in the shell header — fixed 22px height keeps the 48px
+// Carbon header balanced. The light asset's glyphs were recolored to
+// near-white in the file itself (an <img> SVG is a separate document — page
+// CSS can never reach inside it, so stylesheet recoloring is impossible).
+// The lockup pins logo + Docs side by side; prefix="" kills Carbon's
+// default "IBM" prefix.
+.fly-brand-logo {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.fly-brand-lockup {
+  display: flex;
+  align-items: center;
+}
+
+// WHY: Carbon wraps header-name children in its own block span — row the
+// logo and Docs inside it too, or Docs drops below the mark.
+.fly-brand-lockup > span {
+  display: flex;
+  align-items: center;
+}
+
+.fly-brand-docs {
+  margin-left: spacing.$spacing-02;
+}
+
 // WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
 // (list-box__menu is inset-inline: 0), so short trigger labels would clip
 // long menu labels. These min-widths let the menu outgrow its trigger

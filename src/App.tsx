@@ -60,14 +60,16 @@ function App() {
               <Header aria-label="Flyyes Docs">
                 <SkipToContent href="#main-content">Skip to main content</SkipToContent>
                 <HeaderName
-                  prefix="Flyyes"
+                  prefix=""
+                  className="fly-brand-lockup"
                   href="#"
                   onClick={(event) => {
                     event.preventDefault();
                     if (view.name !== "home") goBack();
                   }}
                 >
-                  Docs
+                  <img src="brand-name-light.svg" alt="Flyyes" className="fly-brand-logo" />
+                  <span className="fly-brand-docs">Docs</span>
                 </HeaderName>
               </Header>
             </Theme>
