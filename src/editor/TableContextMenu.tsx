@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useEditorState, type Editor } from "@tiptap/react";
-import { TrashCan } from "@carbon/icons-react";
-import { Menu, MenuItem, MenuItemDivider, MenuItemGroup, MenuItemRadioGroup, MenuItemSelectable } from "@carbon/react";
+import { ColorPalette, TrashCan } from "@carbon/icons-react";
+import { Menu, MenuItem, MenuItemDivider, MenuItemRadioGroup, MenuItemSelectable } from "@carbon/react";
 import { ColorPickerDialog } from "@/components/ColorPicker";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
@@ -10,14 +10,15 @@ import { SheetRowAbove } from "@/components/icons/sheet-row-above";
 import { SheetRowBelow } from "@/components/icons/sheet-row-below";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
+import { TableBordersIcon } from "@/components/icons/table-borders";
 import { normalizeVerticalAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, shouldPreserveSelection } from "./tableSelection";
 
-// WHY: Carbon Menu with grouped sections — Carbon menus have no flyout
-// submenus, so the old Rows/Columns/Cells/Fill/Style flyouts become labeled
-// groups in one panel. Outside tables the native browser menu is untouched
-// (spellcheck etc. keep working). Rendered in a body portal so page sheets
-// (overflow hidden) can never clip it.
+// WHY: Carbon Menu with flyout submenus — the long flat list became five
+// short flyouts (Rows, Columns, Cells, Fill, Style) plus top-level Delete.
+// Outside tables the native browser menu is untouched (spellcheck etc. keep
+// working). Rendered in a body portal so page sheets (overflow hidden) can
+// never clip it.
 
 // DOM-free check so the rule is unit-testable with fake targets.
 export function eventTargetInTable(target: unknown): boolean {
@@ -170,7 +171,7 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
               y={menuPosition.y}
               onClose={() => setMenuOpen(false)}
             >
-              <MenuItemGroup label="Rows">
+              <MenuItem label="Rows" renderIcon={SheetRowAbove}>
                 <MenuItem
                   label="Row above"
                   renderIcon={SheetRowAbove}
@@ -189,8 +190,8 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                   disabled={!menuState.canDeleteRow}
                   onClick={runAndClose(() => editor.chain().focus().deleteRow().run())}
                 />
-              </MenuItemGroup>
-              <MenuItemGroup label="Columns">
+              </MenuItem>
+              <MenuItem label="Columns" renderIcon={SheetColumnLeft}>
                 <MenuItem
                   label="Column left"
                   renderIcon={SheetColumnLeft}
@@ -209,8 +210,8 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                   disabled={!menuState.canDeleteColumn}
                   onClick={runAndClose(() => editor.chain().focus().deleteColumn().run())}
                 />
-              </MenuItemGroup>
-              <MenuItemGroup label="Cells">
+              </MenuItem>
+              <MenuItem label="Cells" renderIcon={TableCellsMergeIcon}>
                 <MenuItem
                   label="Merge cells"
                   renderIcon={TableCellsMergeIcon}
@@ -223,8 +224,8 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                   disabled={!menuState.canSplitCell}
                   onClick={runAndClose(() => editor.chain().focus().splitCell().run())}
                 />
-              </MenuItemGroup>
-              <MenuItemGroup label="Fill">
+              </MenuItem>
+              <MenuItem label="Fill" renderIcon={ColorPalette}>
                 {CELL_FILL_SWATCHES.map((swatch) => (
                   <MenuItem
                     key={swatch.value}
@@ -248,8 +249,8 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                     editor.chain().focus().setCellAttribute("backgroundColor", null).run()
                   )}
                 />
-              </MenuItemGroup>
-              <MenuItemGroup label="Style">
+              </MenuItem>
+              <MenuItem label="Style" renderIcon={TableBordersIcon}>
                 <MenuItemSelectable
                   label="Header row"
                   selected={headerOn}
@@ -269,6 +270,7 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                     editor.chain().focus().updateAttributes("table", { borderless: bordersOn }).run()
                   )}
                 />
+                <MenuItemDivider />
                 <MenuItemRadioGroup
                   label="Cell vertical alignment"
                   items={["top", "middle", "bottom"]}
@@ -283,7 +285,7 @@ export function TableContextMenu({ editor, children }: TableContextMenuPropertie
                       .run();
                   })}
                 />
-              </MenuItemGroup>
+              </MenuItem>
               <MenuItemDivider />
               <MenuItem
                 label="Delete table"

@@ -41,6 +41,8 @@ import { ImageMenu, TableInsert } from "./InsertMenu";
 // and the swap switch; this file owns what each context shows. Commands and
 // dialogs are reused from TableContextMenu/InsertMenu/UrlDialog — nothing is
 // reimplemented, so the bar and the right-click menu can never diverge.
+// The More anchor (CoreOverflowMenu) is defined here but rendered in
+// EditorToolbar's fixed core zone, so it never swaps with the selection.
 
 const LINE_SPACINGS = ["1.0", "1.15", "1.5", "2.0"] as const;
 const IMAGE_WIDTH_PRESETS = [25, 50, 75, 100] as const;
@@ -173,7 +175,7 @@ function joinBlocks(blocks: (PanelBlock | false | null | undefined)[]) {
   ));
 }
 
-function PanelOverflowMenu({ label, sections }: {
+export function PanelOverflowMenu({ label, sections }: {
   label: string;
   sections: { heading: string; tools: OverflowBarTool[] }[];
 }) {
@@ -285,17 +287,15 @@ export interface DefaultSecondaryProperties {
   hiddenIds: string[];
 }
 
-// WHY: The resting right zone — document/search/insert/advanced tools that
-// are not object-specific. Collapsible command groups hide into the overflow
-// menu by priority when the bar narrows; dropdowns, popovers, and dialogs
-// stay put (rebuilding floating UI inside a menu is fragile).
-export function DefaultSecondaryTools({
-  editor,
-  snapshot,
-  onSearchOpen,
-  hiddenIds,
-}: DefaultSecondaryProperties) {
-  const groups: OverflowBarGroup[] = [
+// WHY: Single builder for the default panel's collapsible groups — the bar
+// and the fixed More menu share it, so collapsed tools stay reachable
+// without duplicating labels, icons, or commands (copies would diverge).
+function getDefaultGroups(
+  editor: Editor,
+  snapshot: DefaultSecondarySnapshot,
+  onSearchOpen: () => void
+): OverflowBarGroup[] {
+  return [
     {
       id: "search",
       sectionLabel: "Search",
@@ -333,9 +333,19 @@ export function DefaultSecondaryTools({
       ],
     },
   ];
-  const hiddenSections = groups
-    .filter((group) => hiddenIds.includes(group.id))
-    .map((group) => ({ heading: group.sectionLabel, tools: group.tools }));
+}
+
+export function DefaultSecondaryTools({
+  editor,
+  snapshot,
+  onSearchOpen,
+  hiddenIds,
+}: DefaultSecondaryProperties) {
+  // WHY: The resting right zone — document/search/insert tools that are not
+  // object-specific. Collapsible command groups hide into the fixed More
+  // menu by priority when the bar narrows; dropdowns, popovers, and dialogs
+  // stay put (rebuilding floating UI inside a menu is fragile).
+  const groups = getDefaultGroups(editor, snapshot, onSearchOpen);
   const visible = (id: string) => !hiddenIds.includes(id);
 
   return (
@@ -394,18 +404,35 @@ export function DefaultSecondaryTools({
           key: "indents",
           node: <BarGroup group={groups.find((group) => group.id === "indents")!} />,
         },
-        {
-          key: "overflow",
-          node: (
-            <PanelOverflowMenu
-              label="More formatting"
-              sections={[...hiddenSections, { heading: "More formatting", tools: specialistTools(editor, snapshot) }]}
-            />
-          ),
-        },
       ])}
     </>
   );
+}
+
+// WHY: Shared image-panel groups — the bar and the fixed More menu use the
+// same defs so collapsed tools never diverge.
+function getImageSizeGroup(currentWidth: number, editor: Editor): OverflowBarGroup {
+  return {
+    id: "sizes",
+    sectionLabel: "Image size",
+    priority: 10,
+    tools: IMAGE_WIDTH_PRESETS.map((preset) => ({
+      id: `size-${preset}`,
+      label: `${preset}%`,
+      variant: "text" as const,
+      active: currentWidth === preset,
+      run: () => editor.chain().focus().updateAttributes("image", { width: preset }).run(),
+    })),
+  };
+}
+
+function getImageDeleteGroup(editor: Editor): OverflowBarGroup {
+  return {
+    id: "imagedelete",
+    sectionLabel: "Image",
+    priority: 50,
+    tools: [{ id: "delete", label: "Delete image", icon: <TrashCan />, active: false, run: () => editor.chain().focus().deleteSelection().run() }],
+  };
 }
 
 // WHY: Object properties surface only while their object is selected —
@@ -428,28 +455,9 @@ export function ImageContextTools({ editor, imageWidth, imageAlt, hiddenIds }: {
     const clean = raw.trim();
     editor.chain().focus().updateAttributes("image", { alt: clean === "" ? null : clean }).run();
   };
-  const sizesGroup: OverflowBarGroup = {
-    id: "sizes",
-    sectionLabel: "Image size",
-    priority: 10,
-    tools: IMAGE_WIDTH_PRESETS.map((preset) => ({
-      id: `size-${preset}`,
-      label: `${preset}%`,
-      variant: "text" as const,
-      active: currentWidth === preset,
-      run: () => editor.chain().focus().updateAttributes("image", { width: preset }).run(),
-    })),
-  };
-  const deleteGroup: OverflowBarGroup = {
-    id: "imagedelete",
-    sectionLabel: "Image",
-    priority: 50,
-    tools: [{ id: "delete", label: "Delete image", icon: <TrashCan />, active: false, run: () => editor.chain().focus().deleteSelection().run() }],
-  };
+  const sizesGroup = getImageSizeGroup(currentWidth, editor);
+  const deleteGroup = getImageDeleteGroup(editor);
   const visible = (id: string) => !hiddenIds.includes(id);
-  const hiddenSections = [sizesGroup, deleteGroup]
-    .filter((group) => hiddenIds.includes(group.id))
-    .map((group) => ({ heading: group.sectionLabel, tools: group.tools }));
 
   return (
     <>
@@ -488,21 +496,15 @@ export function ImageContextTools({ editor, imageWidth, imageAlt, hiddenIds }: {
           ),
         },
         visible("imagedelete") && { key: "imagedelete", node: <BarGroup group={deleteGroup} /> },
-        hiddenSections.length > 0 && {
-          key: "overflow",
-          node: <PanelOverflowMenu label="More tools" sections={hiddenSections} />,
-        },
       ])}
     </>
   );
 }
 
-export function TableContextTools({ editor, snapshot, hiddenIds }: {
-  editor: Editor;
-  snapshot: TableContextSnapshot;
-  hiddenIds: string[];
-}) {
-  const groups: OverflowBarGroup[] = [
+// WHY: Shared table-panel groups — the bar and the fixed More menu use the
+// same defs so collapsed tools never diverge.
+function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): OverflowBarGroup[] {
+  return [
     {
       id: "rows",
       sectionLabel: "Table rows",
@@ -566,9 +568,14 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
       tools: [{ id: "deletetable", label: "Delete table", icon: <TrashCan />, active: false, disabled: !snapshot.canDeleteTable, run: () => editor.chain().focus().deleteTable().run() }],
     },
   ];
-  const hiddenSections = groups
-    .filter((group) => hiddenIds.includes(group.id))
-    .map((group) => ({ heading: group.sectionLabel, tools: group.tools }));
+}
+
+export function TableContextTools({ editor, snapshot, hiddenIds }: {
+  editor: Editor;
+  snapshot: TableContextSnapshot;
+  hiddenIds: string[];
+}) {
+  const groups = getTableGroups(editor, snapshot);
   const visible = (id: string) => !hiddenIds.includes(id);
   const groupById = (id: string) => groups.find((group) => group.id === id)!;
 
@@ -605,21 +612,15 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
         },
         visible("borders") && { key: "borders", node: <BarGroup group={groupById("borders")} /> },
         visible("cellvalign") && { key: "cellvalign", node: <BarGroup group={groupById("cellvalign")} /> },
-        hiddenSections.length > 0 && {
-          key: "overflow",
-          node: <PanelOverflowMenu label="More tools" sections={hiddenSections} />,
-        },
       ])}
     </>
   );
 }
 
-export function LinkContextTools({ editor, snapshot, hiddenIds }: {
-  editor: Editor;
-  snapshot: LinkContextSnapshot;
-  hiddenIds: string[];
-}) {
-  const removeGroup: OverflowBarGroup = {
+// WHY: Shared link-panel group — the bar and the fixed More menu use the
+// same def so the collapsed tool never diverges.
+function getLinkRemoveGroup(editor: Editor): OverflowBarGroup {
+  return {
     id: "removelink",
     sectionLabel: "Link",
     priority: 10,
@@ -633,9 +634,14 @@ export function LinkContextTools({ editor, snapshot, hiddenIds }: {
       },
     ],
   };
-  const hiddenSections = hiddenIds.includes("removelink")
-    ? [{ heading: removeGroup.sectionLabel, tools: removeGroup.tools }]
-    : [];
+}
+
+export function LinkContextTools({ editor, snapshot, hiddenIds }: {
+  editor: Editor;
+  snapshot: LinkContextSnapshot;
+  hiddenIds: string[];
+}) {
+  const removeGroup = getLinkRemoveGroup(editor);
   return (
     <>
       {joinBlocks([
@@ -656,10 +662,6 @@ export function LinkContextTools({ editor, snapshot, hiddenIds }: {
           key: "removelink",
           node: <BarGroup group={removeGroup} />,
         },
-        hiddenSections.length > 0 && {
-          key: "overflow",
-          node: <PanelOverflowMenu label="More tools" sections={hiddenSections} />,
-        },
       ])}
     </>
   );
@@ -669,13 +671,43 @@ export function LinkContextTools({ editor, snapshot, hiddenIds }: {
 // containers never earned a ribbon slot) — collapsed groups join them above
 // when the bar narrows, so this menu is both the overflow anchor and the
 // responsive overflow home.
-function specialistTools(editor: Editor, snapshot: DefaultSecondarySnapshot): OverflowBarTool[] {
+export function specialistTools(editor: Editor, snapshot: DefaultSecondarySnapshot): OverflowBarTool[] {
   return [
     { id: "subscript", label: "Subscript", icon: <TextSubscript />, active: snapshot.subscript, run: () => editor.chain().focus().toggleSubscript().run() },
     { id: "superscript", label: "Superscript", icon: <TextSuperscript />, active: snapshot.superscript, run: () => editor.chain().focus().toggleSuperscript().run() },
     { id: "quote", label: "Quote", icon: <Quotes />, active: snapshot.blockquote, run: () => editor.chain().focus().toggleBlockquote().run() },
     { id: "codeblock", label: "Code block", icon: <Code />, active: snapshot.codeBlock, run: () => editor.chain().focus().toggleCodeBlock().run() },
   ];
+}
+
+export interface CoreOverflowMenuProperties {
+  editor: Editor;
+  snapshot: DefaultSecondarySnapshot;
+  hiddenIds: string[];
+  onSearchOpen: () => void;
+}
+
+// WHY: The fixed More menu — same button, same place, same home in every
+// case. It holds the specialists plus any collapsed default-panel groups,
+// and it always renders (specialists never collapse), so selecting an
+// image, table, or link can never move, relabel, or remove it. Object
+// panels never collapse — their tools always stay on the bar.
+export function CoreOverflowMenu({
+  editor,
+  snapshot,
+  hiddenIds,
+  onSearchOpen,
+}: CoreOverflowMenuProperties) {
+  const groups = getDefaultGroups(editor, snapshot, onSearchOpen);
+  const hiddenSections = groups
+    .filter((group) => hiddenIds.includes(group.id))
+    .map((group) => ({ heading: group.sectionLabel, tools: group.tools }));
+  return (
+    <PanelOverflowMenu
+      label="More formatting"
+      sections={[...hiddenSections, { heading: "More formatting", tools: specialistTools(editor, snapshot) }]}
+    />
+  );
 }
 
 function OverflowRow({ icon, label, checked, disabled, onClick }: {

@@ -107,6 +107,13 @@
 }
 
 .fly-ribbon {
+  // WHY: Left-aligned flexbox row — both clusters pack left in content order
+  // with no fixed split, so any leftover blank space sits at the far right
+  // end of the bar. display + align live here (not Tailwind) so the row
+  // holds even where Carbon's reset beats layered utilities.
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
   // WHY: Same 8px side padding as the title row above, so undo aligns under
   // the title and the overflow menu aligns under Export — balanced edges
   // instead of tools glued to the screen sides.
@@ -130,30 +137,32 @@
 
 .fly-separator {
   align-self: stretch;
-  // WHY: Tight dividers for the compact 60/40 pass — 8px each side read as
-  // empty gaps in the screenshot, 4px keeps groups scannable without waste.
+  // WHY: Tight dividers for the compact bar — 8px each side read as empty
+  // gaps in the screenshot, 4px keeps groups scannable without waste.
   margin-inline: spacing.$spacing-02;
   border-left: 1px solid var(--border);
 }
 
-// WHY: One middle gap — Core sizes to content on the left, Secondary is
-// pinned right (margin-left auto absorbs ALL leftover width). Every tool
-// keeps its fixed size and tight gaps; the single gap sits between the
-// clusters like Word/Docs. Secondary carries its own left divider so the
-// divider hugs the right cluster instead of floating mid-gap.
+// WHY: Left-aligned neighbors — both clusters size to their content and sit
+// directly beside each other (no basis split, no margin-left auto gap).
+// Leftover blank space falls at the far right end of the bar. The
+// Secondary left divider hugs its cluster instead of floating mid-gap.
 .fly-ribbon-core {
   flex: 0 1 auto;
+  min-width: 0;
 }
 
 .fly-ribbon-secondary {
   flex: 0 1 auto;
-  margin-left: auto;
+  min-width: 0;
+  margin-left: 0;
+  justify-content: flex-start;
   border-left: 1px solid var(--border);
   padding-left: spacing.$spacing-02;
   background: transparent;
 }
 
-// WHY: Right-zone swap animation — slide in from the right + fade, 160ms
+// WHY: Right-zone reveal animation — rise from below + fade, 160ms
 // (within the 150-200ms motion budget) so the panel change reads without
 // feeling slow. key={context} remounts replays it per swap; reduced-motion
 // users get an instant swap instead.
@@ -164,7 +173,7 @@
 @keyframes fly-context-in {
   from {
     opacity: 0;
-    transform: translateX(8px);
+    transform: translateY(8px);
   }
 
   to {
@@ -199,6 +208,17 @@
   display: block;
   height: 22px;
   width: auto;
+}
+
+// WHY: Header action cluster pinned to the bar's right end — margin-start
+// auto is the push (ml-auto is dead under Carbon's reset). Gap + side
+// padding in tokens; ghost buttons carry their own dark-theme colors.
+.fly-header-actions {
+  display: flex;
+  align-items: center;
+  gap: spacing.$spacing-02;
+  margin-inline-start: auto;
+  padding-right: spacing.$spacing-03;
 }
 
 .fly-brand-lockup {

@@ -21,6 +21,7 @@ import { ColorPicker } from "@/components/ColorPicker";
 import { normalizeVerticalAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, isSelectionInTable } from "./tableSelection";
 import {
+  CoreOverflowMenu,
   DefaultSecondaryTools,
   ImageContextTools,
   LinkButton,
@@ -164,23 +165,26 @@ export function EditorToolbar({
         linkActive: toolbarState.link,
       })
     : "default";
-  // WHY: Responsive overflow (Word behavior) — the hook hides low-priority
-  // right-zone groups into the overflow menu while the ribbon overflows, so
-  // the bar stays one row on narrow screens instead of growing taller. Core
-  // never collapses; hidden ids reset on every context swap.
+  // WHY: Responsive overflow (Word behavior) — only the default panel
+  // collapses low-priority groups into the fixed More menu while the ribbon
+  // overflows. Object panels (image/table/link) never collapse: their tools
+  // are the reason the right side swapped, so they stay fully on the bar
+  // and wrap on narrow screens instead. Core never collapses; hidden ids
+  // reset on every context swap.
   // WHY: Element state (not a ref object) — the ribbon mounts after the
   // editor initializes, so a ref object would stay null in the effect that
   // ran before mount and the observer would never attach.
   const [ribbonEl, setRibbonEl] = useState<HTMLDivElement | null>(null);
-  const hiddenIds = useToolbarOverflow(ribbonEl, PANEL_COLLAPSIBLE[context], context);
+  const collapsible = context === "default" ? PANEL_COLLAPSIBLE.default : [];
+  const hiddenIds = useToolbarOverflow(ribbonEl, collapsible, context);
   // WHY: Ultimate fallback — every collapsible group hidden yet still too
   // wide means even the fixed minimum doesn't fit: let the swapped content
-  // wrap so the overflow anchor stays reachable instead of sliding
-  // off-screen. Wrapping a fitting row is a no-op, so this only ever bites
-  // on narrow screens.
+  // wrap so nothing slides off-screen. Object panels wrap freely for the
+  // same reason (they never collapse). Wrapping a fitting row is a no-op,
+  // so this only ever bites on narrow screens.
   const exhausted =
-    PANEL_COLLAPSIBLE[context].length > 0 &&
-    hiddenIds.length >= PANEL_COLLAPSIBLE[context].length;
+    collapsible.length > 0 && hiddenIds.length >= collapsible.length;
+  const secondaryWrap = context === "default" ? exhausted : true;
 
   // WHY: Core row is always visible (every-paragraph tools, stable muscle
   // memory); the right cluster swaps its panel by selection with a slide
@@ -188,8 +192,9 @@ export function EditorToolbar({
   // default panel for this pass — they move to the title row on approval.
   return (
     <div ref={setRibbonEl} className="fly-ribbon flex items-stretch gap-0 bg-background">
-      {/* 60% Core — every-paragraph formatting, always visible. */}
-      <div role="group" aria-label="Core tools, 60 percent" className="fly-ribbon-core flex min-w-0 flex-wrap items-center gap-0">
+      {/* Fixed left side — every-paragraph formatting, always visible, plus
+          the More menu (same button, same place, in every case). */}
+      <div role="group" aria-label="Core tools" className="fly-ribbon-core flex min-w-0 flex-wrap items-center gap-0">
         <div className="flex items-center gap-0">
           <ToolbarButton title="Undo" active={false} onClick={() => editor.chain().focus().undo().run()}>
             <Undo />
@@ -346,21 +351,35 @@ export function EditorToolbar({
             previousLinkHref={previousLink}
           />
         </div>
+
+        {/* WHY: Fixed on the static left side — same button and same menu in
+            every case, so selecting an object can never move or remove it.
+            No divider before it: it reads as part of the core row, and
+            object panels keep all their tools on the bar. */}
+        <div className="flex items-center gap-0 [&>*]:shrink-0">
+          <CoreOverflowMenu
+            editor={editor}
+            snapshot={toolbarState}
+            hiddenIds={hiddenIds}
+            onSearchOpen={onSearchOpen}
+          />
+        </div>
       </div>
 
-      {/* Right cluster pinned right — its left divider lives in CSS
-          (.fly-ribbon-secondary) so it hugs the cluster; the margin-left
-          auto gap sits left of the divider. Content swaps by selection. */}
+      {/* Active right side — sits directly beside Core (no auto gap) with
+          everything left-aligned. Left divider lives in CSS
+          (.fly-ribbon-secondary) so it hugs the cluster. Content swaps by
+          selection; the More menu lives on the fixed left side. */}
       <div
         role="group"
         aria-label={CONTEXT_LABELS[context]}
         aria-live="polite"
         className="fly-ribbon-secondary flex min-w-0 flex-nowrap items-center gap-0"
       >
-        {/* WHY: key remounts on context change so the slide animation
-            replays per swap (see .fly-context-swap). The More button never
-            triggers a swap — selection alone decides. */}
-        <div key={context} className={`fly-context-swap flex min-w-0 items-center gap-0 ${exhausted ? "flex-wrap" : "flex-nowrap"}`}>
+        {/* WHY: key remounts on context change so the reveal animation
+            replays per swap (see .fly-context-swap). Object panels wrap on
+            narrow screens (see secondaryWrap) since they never collapse. */}
+        <div key={context} className={`fly-context-swap flex min-w-0 items-center gap-0 ${secondaryWrap ? "flex-wrap" : "flex-nowrap"}`}>
           {context === "image" ? (
             <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} imageAlt={toolbarState.imageAlt} hiddenIds={hiddenIds} />
           ) : context === "table" ? (
