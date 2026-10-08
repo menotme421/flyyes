@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Header, HeaderName, SkipToContent, Theme } from "@carbon/react";
+import { Button, Header, HeaderName, SkipToContent, Theme } from "@carbon/react";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { ToastHost } from "@/components/ToastHost";
 import { EditorPage } from "@/pages/EditorPage";
@@ -72,6 +72,31 @@ function App() {
                   <span className="fly-brand-name">Flyyes</span>
                   <span className="cds--type-body-02 fly-brand-docs">Docs</span>
                 </HeaderName>
+                {/* WHY: Plain div pinned right (not HeaderGlobalBar — that
+                    expects icon-only actions). Carbon kinds only: ghost for
+                    Feedback (quiet), tertiary outline for Request a Feature
+                    (the standout action). Both inherit the dark g100 theme
+                    and open the repo issue tracker in a new tab. */}
+                <div className="fly-header-actions">
+                  <Button
+                    kind="ghost"
+                    size="sm"
+                    href="https://github.com/menotme421/flyyes/issues/new?labels=feedback&title=%5BFeedback%5D+"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Feedback
+                  </Button>
+                  <Button
+                    kind="tertiary"
+                    size="sm"
+                    href="https://github.com/menotme421/flyyes/issues/new?labels=enhancement&title=%5BFeature%5D+"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Request a Feature
+                  </Button>
+                </div>
               </Header>
             </Theme>
           </div>
