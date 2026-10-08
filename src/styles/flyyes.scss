@@ -208,10 +208,13 @@
 }
 
 // WHY: Carbon wraps header-name children in its own block span — row the
-// logo and Docs inside it too, or Docs drops below the mark.
+// logo and Docs inside it too, or Docs drops below the mark. Baseline (not
+// center) alignment: both names share one text baseline, which is the only
+// alignment that stays true across the serif/sans x-height mismatch — no
+// pixel nudges to maintain.
 .fly-brand-lockup > span {
   display: flex;
-  align-items: center;
+  align-items: baseline;
 }
 
 // WHY: Serif lives only in the Flyyes mark image — Docs stays in the
@@ -249,12 +252,10 @@
 }
 
 .fly-brand-docs {
+  // WHY: Same 18px step as the mark (user call) — hierarchy now comes from
+  // serif-vs-sans voice contrast alone, not size.
+  font-size: 18px;
   margin-left: spacing.$spacing-03;
-  // WHY: Nudged down to the serif mark's optical line — "Flyyes" carries a
-  // descender (y) that drags its visual mass below geometric center, so
-  // centered Sans text reads as floating high without this (verified at 4x
-  // zoom: cap tops level).
-  transform: translateY(3px);
 }
 
 // WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
