@@ -70,7 +70,7 @@ function App() {
                   }}
                 >
                   <span className="fly-brand-name">Flyyes</span>
-                  <span className="fly-brand-docs">Docs</span>
+                  <span className="cds--type-body-02 fly-brand-docs">Docs</span>
                 </HeaderName>
               </Header>
             </Theme>

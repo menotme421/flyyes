@@ -249,12 +249,12 @@
 }
 
 .fly-brand-docs {
-  font-family: "Flyyes Brand Serif", "IBM Plex Serif", Georgia, serif;
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1;
   margin-left: spacing.$spacing-03;
-  transform: translateY(-1px);
+  // WHY: Nudged down to the serif mark's optical line — "Flyyes" carries a
+  // descender (y) that drags its visual mass below geometric center, so
+  // centered Sans text reads as floating high without this (verified at 4x
+  // zoom: cap tops level).
+  transform: translateY(3px);
 }
 
 // WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
