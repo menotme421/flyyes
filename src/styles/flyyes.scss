@@ -230,17 +230,29 @@
   src: url("@ibm/plex/IBM-Plex-Serif/fonts/complete/woff2/IBMPlexSerif-Regular.woff2") format("woff2");
 }
 
-// WHY: Smaller lockup overall — 18px serif name beside 14px Sans app name.
-// Weight and size contrast (not equal steps) is what keeps brand and app
-// readable as two halves at header scale.
+@font-face {
+  font-family: "Flyyes Brand Serif";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("@ibm/plex/IBM-Plex-Serif/fonts/complete/woff2/IBMPlexSerif-SemiBold.woff2") format("woff2");
+}
+
+// WHY: One family, two weights — 18px SemiBold platform name beside 18px
+// Regular product name. Same size (user call); hierarchy comes from weight
+// contrast alone.
 .fly-brand-name {
   font-family: "Flyyes Brand Serif", "IBM Plex Serif", Georgia, serif;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1;
 }
 
 .fly-brand-docs {
+  font-family: "Flyyes Brand Serif", "IBM Plex Serif", Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
   margin-left: spacing.$spacing-03;
   transform: translateY(-1px);
 }
