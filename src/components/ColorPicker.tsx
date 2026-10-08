@@ -310,7 +310,10 @@ export function ColorPicker({ title, value, onSelect, children, onClear, clearLa
   // carries its own tooltip (IconButton label), so no wrapper is needed.
   const [open, setOpen] = useState(false);
   return (
-    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
+    // WHY: autoAlign flips the panel back on screen near viewport edges
+    // (right-edge triggers on narrow windows) — Carbon experimental, verified
+    // by screenshot on wide and narrow viewports.
+    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" autoAlign caret>
       <span onClick={() => setOpen((currently) => !currently)}>{children}</span>
       <PopoverContent className="fly-popover-panel-lg w-52">
         <p className="cds--type-label-02 fly-section-label text-muted-foreground">{title}</p>
