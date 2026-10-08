@@ -11,7 +11,9 @@ interface SvgIconProperties extends SVGProps<SVGSVGElement> {
 }
 
 export function createSvgIcon(displayName: string, nodes: IconNode) {
-  function SvgIcon({ size = 24, style, ...rest }: SvgIconProperties) {
+  // WHY: Default 16 matches Carbon icons inside 32px ghost buttons — 24
+  // rendered 1.5x too big with 2px-true strokes next to Carbon's 1px.
+  function SvgIcon({ size = 16, style, ...rest }: SvgIconProperties) {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"

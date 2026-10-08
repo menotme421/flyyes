@@ -43,4 +43,12 @@ describe("owned sheet icons", () => {
     expect(markup).toContain("fill:none");
     expect(markup).toContain("cds-icon-primary");
   });
+
+  it("defaults to 16px like Carbon icons in buttons (not 24)", () => {
+    // WHY: 24px customs rendered 1.5x too big with true-2px strokes next
+    // to Carbon's 16px/1px icons in the same 32px ghost buttons.
+    const markup = renderToStaticMarkup(SheetRowAbove({} as never) as never);
+    expect(markup).toContain('width="16"');
+    expect(markup).toContain('height="16"');
+  });
 });
