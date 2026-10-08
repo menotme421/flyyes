@@ -214,14 +214,12 @@
   align-items: center;
 }
 
-// WHY: Unified brand lockup from Carbon's own shelf — cds--type-code-01
-// carries the mono badge voice (12px Plex Mono, native tracking) so Docs
-// echoes the pixel grid with zero hand-rolled type. Only the non-tokenizable
-// bits stay custom: uppercase badge casing, an 8px token gap, and a 1px
-// optical lift against the glyph mass. Uppercase is visual only; screen
-// readers and the accessible name still read "Docs".
+// WHY: Unified Carbon typography lockup — the pixel mark keeps its voice
+// while Docs uses the standard Carbon face (body-compact-01, 14px Plex Sans
+// regular, normal case): one personality plus one clear name, no mixed
+// badge dialect. Only the non-tokenizable bits stay custom: an 8px spacing
+// token gap and a 1px optical lift against the glyph mass.
 .fly-brand-docs {
-  text-transform: uppercase;
   margin-left: spacing.$spacing-03;
   transform: translateY(-1px);
 }
