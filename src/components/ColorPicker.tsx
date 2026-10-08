@@ -297,9 +297,13 @@ interface ColorPickerProperties {
   value?: string | null;
   onSelect: (hex: string) => void;
   children: React.ReactNode;
+  // WHY: Opt-in clear row (cell fill's "No fill") — text/highlight pickers
+  // don't pass it, so their panels are byte-identical to before.
+  onClear?: () => void;
+  clearLabel?: string;
 }
 
-export function ColorPicker({ title, value, onSelect, children }: ColorPickerProperties) {
+export function ColorPicker({ title, value, onSelect, children, onClear, clearLabel }: ColorPickerProperties) {
   // WHY: Controlled Carbon Popover that stays open while picking — colors
   // apply live on every click so users can audition shades. Closes via
   // outside click, Escape, or re-clicking the trigger. The trigger already
@@ -311,6 +315,11 @@ export function ColorPicker({ title, value, onSelect, children }: ColorPickerPro
       <PopoverContent className="fly-popover-panel-lg w-52">
         <p className="cds--type-label-02 fly-section-label text-muted-foreground">{title}</p>
         <ColorPickerBody value={value} onSelect={onSelect} />
+        {onClear ? (
+          <Button kind="ghost" size="sm" onClick={() => { onClear(); setOpen(false); }}>
+            {clearLabel ?? "Clear"}
+          </Button>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

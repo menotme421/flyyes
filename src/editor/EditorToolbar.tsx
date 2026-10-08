@@ -20,7 +20,8 @@ import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, WORD_FONT_FAMILIES, WORD_FONT_S
 import { ColorPicker } from "@/components/ColorPicker";
 import type { ResolvedPageSetup } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
-import { isHeaderRowActive, isSelectionInTable } from "./tableSelection";
+import { normalizeTableAlignment } from "./tablePropertiesExtension";
+import { isHeaderColumnActive, isHeaderRowActive, isSelectionInTable } from "./tableSelection";
 import {
   DefaultSecondaryTools,
   ImageContextTools,
@@ -135,8 +136,18 @@ export function EditorToolbar({
         canMergeCells: liveEditor.can().mergeCells(),
         canSplitCell: liveEditor.can().splitCell(),
         canToggleHeaderRow: liveEditor.can().toggleHeaderRow(),
+        canToggleHeaderColumn: liveEditor.can().toggleHeaderColumn(),
         canDeleteTable: liveEditor.can().deleteTable(),
         headerRowOn: isHeaderRowActive(liveEditor.state.selection),
+        headerColumnOn: isHeaderColumnActive(liveEditor.state.selection),
+        // WHY: Same sources as TableContextMenu's menuState — bar and menu
+        // can never disagree about fill, borders, or alignment.
+        cellFill: cellBackground(liveEditor),
+        bordersOn: (liveEditor.getAttributes("table") as { borderless?: unknown }).borderless !== true,
+        tableAlignment:
+          normalizeTableAlignment(
+            (liveEditor.getAttributes("table") as { tableAlignment?: unknown }).tableAlignment
+          ) ?? "left",
       };
     },
   });
@@ -369,6 +380,19 @@ function ToolbarButton({ title, active, onClick, children }: {
       {children}
     </IconButton>
   );
+}
+
+// WHY: Cell fill reads tableCell first, tableHeader second — a header-cell
+// caret reports through its own node type, and both share the attribute.
+function cellBackground(liveEditor: Editor): string | null {
+  try {
+    const cell = liveEditor.getAttributes("tableCell") as { backgroundColor?: unknown };
+    const header = liveEditor.getAttributes("tableHeader") as { backgroundColor?: unknown };
+    const raw = cell.backgroundColor ?? header.backgroundColor;
+    return typeof raw === "string" ? raw : null;
+  } catch {
+    return null;
+  }
 }
 
 // WHY: Screen-reader labels for the swapping right cluster — announced via

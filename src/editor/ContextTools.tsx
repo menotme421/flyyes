@@ -1,15 +1,22 @@
 import { useState } from "react";
 import type { Editor } from "@tiptap/react";
 import {
+  BorderFull,
   Checkmark,
   Code,
+  ColorPalette,
+  Column,
   DocumentConfiguration,
   Link,
   ListChecked,
   OverflowMenuVertical,
   PageBreak,
   Quotes,
+  Row,
   Search,
+  TextAlignCenter,
+  TextAlignLeft,
+  TextAlignRight,
   TextIndentLess,
   TextIndentMore,
   TextStrikethrough,
@@ -18,6 +25,7 @@ import {
   TrashCan,
 } from "@carbon/icons-react";
 import { Button, Dropdown, IconButton, Popover, PopoverContent } from "@carbon/react";
+import { ColorPicker } from "@/components/ColorPicker";
 import { LayoutListMove } from "@/components/icons/layout-list-move";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
 import { SheetColumnRight } from "@/components/icons/sheet-column-right";
@@ -30,6 +38,7 @@ import { UrlDialog } from "@/components/UrlDialog";
 import { ZoomSelect } from "@/components/ZoomSelect";
 import type { ResolvedPageSetup } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
+import type { TableAlignment } from "./tablePropertiesExtension";
 import { ImageMenu, TableInsert } from "./InsertMenu";
 
 // WHY: Right-zone swap cluster (single responsibility) — every non-core tool
@@ -83,8 +92,13 @@ export interface TableContextSnapshot {
   canMergeCells: boolean;
   canSplitCell: boolean;
   canToggleHeaderRow: boolean;
+  canToggleHeaderColumn: boolean;
   canDeleteTable: boolean;
   headerRowOn: boolean;
+  headerColumnOn: boolean;
+  cellFill: string | null;
+  bordersOn: boolean;
+  tableAlignment: TableAlignment;
 }
 
 export interface LinkContextSnapshot {
@@ -353,11 +367,74 @@ export function TableContextTools({ editor, snapshot }: {
         <ContextButton title="Split cell" active={false} disabled={!snapshot.canSplitCell} onClick={() => editor.chain().focus().splitCell().run()}>
           <TableCellsSplitIcon />
         </ContextButton>
+        {/* WHY: Row/Column glyphs (not two checkmarks) so the pair scans as
+            distinct targets — tooltips carry the full meaning. */}
         <ContextButton title="Header row" active={snapshot.headerRowOn} disabled={!snapshot.canToggleHeaderRow} onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
-          <Checkmark />
+          <Row />
+        </ContextButton>
+        <ContextButton title="Header column" active={snapshot.headerColumnOn} disabled={!snapshot.canToggleHeaderColumn} onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>
+          <Column />
         </ContextButton>
         <ContextButton title="Delete table" active={false} disabled={!snapshot.canDeleteTable} onClick={() => editor.chain().focus().deleteTable().run()}>
           <TrashCan />
+        </ContextButton>
+      </div>
+      <ToolbarSeparator />
+      {/* WHY: Cell fill reuses the shared honeycomb picker (same as text
+          color) with a No-fill footer — same commands as the right-click
+          menu's Fill group, surfaced on top. */}
+      <div className="flex items-center gap-0 [&>*]:shrink-0" role="group" aria-label="Cell fill">
+        <ColorPicker
+          title="Cell fill"
+          value={snapshot.cellFill}
+          onSelect={(hex) => editor.chain().focus().setCellAttribute("backgroundColor", hex).run()}
+          onClear={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
+          clearLabel="No fill"
+        >
+          <IconButton kind="ghost" size="sm" label="Cell fill" align="bottom">
+            <span className="flex flex-col items-center leading-none">
+              <ColorPalette className="h-4 w-4" />
+              <span
+                aria-hidden="true"
+                className="fly-color-bar h-1 w-4 rounded-sm"
+                style={{ backgroundColor: snapshot.cellFill ?? "transparent" }}
+              />
+            </span>
+          </IconButton>
+        </ColorPicker>
+      </div>
+      <ToolbarSeparator />
+      {/* WHY: Borders + alignment mirror the menu's Style group — borders is
+          the same borderless toggle, alignment stores left as null (unstyled
+          default) exactly like the menu does. */}
+      <div className="flex items-center gap-0 [&>*]:shrink-0" role="group" aria-label="Table style">
+        <ContextButton
+          title="Borders"
+          active={snapshot.bordersOn}
+          onClick={() => editor.chain().focus().updateAttributes("table", { borderless: snapshot.bordersOn }).run()}
+        >
+          <BorderFull />
+        </ContextButton>
+        <ContextButton
+          title="Align table left"
+          active={snapshot.tableAlignment === "left"}
+          onClick={() => editor.chain().focus().updateAttributes("table", { tableAlignment: null }).run()}
+        >
+          <TextAlignLeft />
+        </ContextButton>
+        <ContextButton
+          title="Align table center"
+          active={snapshot.tableAlignment === "center"}
+          onClick={() => editor.chain().focus().updateAttributes("table", { tableAlignment: "center" }).run()}
+        >
+          <TextAlignCenter />
+        </ContextButton>
+        <ContextButton
+          title="Align table right"
+          active={snapshot.tableAlignment === "right"}
+          onClick={() => editor.chain().focus().updateAttributes("table", { tableAlignment: "right" }).run()}
+        >
+          <TextAlignRight />
         </ContextButton>
       </div>
     </>
