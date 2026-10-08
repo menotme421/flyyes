@@ -23,11 +23,13 @@ export function createSvgIcon(displayName: string, nodes: IconNode) {
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        // WHY: Inline style beats Carbon's ghost-button rule
-        // (.cds--btn--ghost:not([disabled]) svg { fill: icon-primary }),
-        // which otherwise overrides the fill="none" attribute (attributes
-        // lose to any CSS) and paints every closed shape as a solid blob.
-        style={{ fill: "none", ...style }}
+        // WHY: Inline styles beat Carbon's ghost-button rules, which would
+        // otherwise restyle these icons two ways (attributes lose to any
+        // CSS): its fill rule paints every closed shape as a solid blob,
+        // and its blue button text bleeds through stroke="currentColor".
+        // Pinning both to the icon token matches Carbon's own icons in
+        // light and dark themes alike.
+        style={{ fill: "none", stroke: "var(--cds-icon-primary, #161616)", ...style }}
         {...rest}
       >
         {nodes.map(([tag, attrs]) => {

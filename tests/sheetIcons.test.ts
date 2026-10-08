@@ -34,12 +34,13 @@ describe("owned sheet icons", () => {
     expect(TableCellsSplitIcon).toBeTruthy();
   });
 
-  it("pins fill none as an inline style (beats Carbon ghost-button CSS)", () => {
-    // WHY: Carbon sets .cds--btn--ghost:not([disabled]) svg { fill:
-    // icon-primary }, which overrides the fill="none" attribute (attributes
-    // lose to any CSS) and rendered every closed shape as a solid black
-    // blob inside toolbar buttons. Inline style wins over stylesheets.
+  it("pins Carbon-proof paint as inline styles (beats ghost-button CSS)", () => {
+    // WHY: Carbon ghost buttons restyle child SVGs two ways (attributes lose
+    // to any CSS): a fill rule that blobbed every closed shape solid black,
+    // and blue button text bleeding through stroke="currentColor". Inline
+    // styles win over stylesheets on both.
     const markup = renderToStaticMarkup(SheetRowAbove({} as never) as never);
     expect(markup).toContain("fill:none");
+    expect(markup).toContain("cds-icon-primary");
   });
 });
