@@ -301,16 +301,20 @@ interface ColorPickerProperties {
   // don't pass it, so their panels are byte-identical to before.
   onClear?: () => void;
   clearLabel?: string;
+  // WHY: Opt-in popover side — triggers pinned at the bar's right edge
+  // (cell fill) must open right-aligned or the wide honeycomb runs off
+  // screen. Left-side triggers keep the default.
+  align?: "bottom-start" | "bottom-end";
 }
 
-export function ColorPicker({ title, value, onSelect, children, onClear, clearLabel }: ColorPickerProperties) {
+export function ColorPicker({ title, value, onSelect, children, onClear, clearLabel, align = "bottom-start" }: ColorPickerProperties) {
   // WHY: Controlled Carbon Popover that stays open while picking — colors
   // apply live on every click so users can audition shades. Closes via
   // outside click, Escape, or re-clicking the trigger. The trigger already
   // carries its own tooltip (IconButton label), so no wrapper is needed.
   const [open, setOpen] = useState(false);
   return (
-    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
+    <Popover open={open} onRequestClose={() => setOpen(false)} align={align} caret>
       <span onClick={() => setOpen((currently) => !currently)}>{children}</span>
       <PopoverContent className="fly-popover-panel-lg w-52">
         <p className="cds--type-label-02 fly-section-label text-muted-foreground">{title}</p>
