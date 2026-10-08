@@ -586,14 +586,13 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
           key: "fill",
           node: (
             <div className="flex items-center gap-0 [&>*]:shrink-0" role="group" aria-label="Cell fill">
-        <ColorPicker
-          title="Cell fill"
-          value={snapshot.cellFill}
-          onSelect={(hex) => editor.chain().focus().setCellAttribute("backgroundColor", hex).run()}
-          onClear={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
-          clearLabel="No fill"
-          align="bottom-end"
-        >
+              <ColorPicker
+                title="Cell fill"
+                value={snapshot.cellFill}
+                onSelect={(hex) => editor.chain().focus().setCellAttribute("backgroundColor", hex).run()}
+                onClear={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
+                clearLabel="No fill"
+              >
                 <IconButton kind="ghost" size="sm" label="Cell fill" align="bottom">
                   <span className="flex flex-col items-center leading-none">
                     <ColorPalette className="h-4 w-4" />
