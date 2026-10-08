@@ -5,7 +5,6 @@ import {
   Code,
   ColorPalette,
   Column,
-  DocumentConfiguration,
   Link,
   ListChecked,
   OverflowMenuVertical,
@@ -20,7 +19,7 @@ import {
   TextSuperscript,
   TrashCan,
 } from "@carbon/icons-react";
-import { Button, Dropdown, IconButton, Popover, PopoverContent } from "@carbon/react";
+import { Button, Dropdown, IconButton, Popover, PopoverContent, TextInput } from "@carbon/react";
 import { ColorPicker } from "@/components/ColorPicker";
 import { LayoutListMove } from "@/components/icons/layout-list-move";
 import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
@@ -33,11 +32,7 @@ import { TableAlignRightIcon } from "@/components/icons/table-align-right";
 import { TableBordersIcon } from "@/components/icons/table-borders";
 import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
 import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
-import { PageSetupDialog } from "@/components/PageSetupDialog";
 import { UrlDialog } from "@/components/UrlDialog";
-import { ZoomSelect } from "@/components/ZoomSelect";
-import type { ResolvedPageSetup } from "@/services/pageSetupService";
-import type { PageOrientation } from "@/storage/documentTypes";
 import type { TableAlignment } from "./tablePropertiesExtension";
 import { ImageMenu, TableInsert } from "./InsertMenu";
 
@@ -284,12 +279,6 @@ export function LinkButton({ editor, linkActive, selectionEmpty, previousLinkHre
 export interface DefaultSecondaryProperties {
   editor: Editor;
   snapshot: DefaultSecondarySnapshot;
-  pageSetup: ResolvedPageSetup;
-  onPageSetupChange: (presetId: string, orientation: PageOrientation) => void;
-  pageSetupOpen: boolean;
-  onPageSetupOpenChange: (open: boolean) => void;
-  zoomPercent: number;
-  onZoomChange: (nextZoom: number) => void;
   onSearchOpen: () => void;
   hiddenIds: string[];
 }
@@ -301,12 +290,6 @@ export interface DefaultSecondaryProperties {
 export function DefaultSecondaryTools({
   editor,
   snapshot,
-  pageSetup,
-  onPageSetupChange,
-  pageSetupOpen,
-  onPageSetupOpenChange,
-  zoomPercent,
-  onZoomChange,
   onSearchOpen,
   hiddenIds,
 }: DefaultSecondaryProperties) {
@@ -359,29 +342,6 @@ export function DefaultSecondaryTools({
         visible("search") && {
           key: "search",
           node: <BarGroup group={groups.find((group) => group.id === "search")!} />,
-        },
-        {
-          key: "doc",
-          node: (
-            // WHY: Small gap between setup and zoom (user call) — search
-            // lives in its own collapsible group above (single source; a
-            // second copy here once duplicated it into two magnifiers).
-            <div className="flex items-center gap-1">
-              <ContextButton title="Page setup (paper presets)" active={false} onClick={() => onPageSetupOpenChange(true)}>
-                <DocumentConfiguration />
-              </ContextButton>
-              <PageSetupDialog
-                open={pageSetupOpen}
-                onClose={() => onPageSetupOpenChange(false)}
-                initialPresetId={pageSetup.presetId}
-                initialOrientation={pageSetup.landscape ? "landscape" : "portrait"}
-                onSave={onPageSetupChange}
-              />
-              <div className="w-28 shrink-0">
-                <ZoomSelect zoomPercent={zoomPercent} onZoomChange={onZoomChange} />
-              </div>
-            </div>
-          ),
         },
         {
           key: "insert",
@@ -450,14 +410,22 @@ export function DefaultSecondaryTools({
 // otherwise they stay hidden and the bar keeps the default set. Same
 // commands as TableContextMenu (single source of truth for what each
 // action does); this panel only changes where they are reachable.
-export function ImageContextTools({ editor, imageWidth, hiddenIds }: {
+export function ImageContextTools({ editor, imageWidth, imageAlt, hiddenIds }: {
   editor: Editor;
   imageWidth: number | null;
+  imageAlt: string | null;
   hiddenIds: string[];
 }) {
   // WHY: Unset width renders full-bleed (see ResizableImage), so null reads
   // as 100% and the 100% preset shows active instead of nothing active.
   const currentWidth = imageWidth ?? 100;
+  // WHY: Commit on blur/Enter only — every keystroke would spam the undo
+  // history and autosave. key remounts per stored value so the field always
+  // mirrors the selected image with no sync effect.
+  const commitAltText = (raw: string) => {
+    const clean = raw.trim();
+    editor.chain().focus().updateAttributes("image", { alt: clean === "" ? null : clean }).run();
+  };
   const sizesGroup: OverflowBarGroup = {
     id: "sizes",
     sectionLabel: "Image size",
@@ -490,6 +458,30 @@ export function ImageContextTools({ editor, imageWidth, hiddenIds }: {
           node: (
             <div className="flex items-center gap-0 [&>*]:shrink-0">
               <ImageMenu editor={editor} />
+            </div>
+          ),
+        },
+        {
+          key: "alttext",
+          node: (
+            <div className="w-40 shrink-0">
+              <TextInput
+                key={imageAlt ?? ""}
+                id="image-alt-text"
+                labelText="Image alt text"
+                hideLabel
+                size="sm"
+                placeholder="Alt text"
+                defaultValue={imageAlt ?? ""}
+                maxLength={125}
+                onBlur={(event) => commitAltText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    commitAltText(event.currentTarget.value);
+                  }
+                }}
+              />
             </div>
           ),
         },

@@ -18,8 +18,6 @@ import {
 import { Dropdown, IconButton } from "@carbon/react";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, WORD_FONT_FAMILIES, WORD_FONT_SIZES } from "@/editor/editorExtensions";
 import { ColorPicker } from "@/components/ColorPicker";
-import type { ResolvedPageSetup } from "@/services/pageSetupService";
-import type { PageOrientation } from "@/storage/documentTypes";
 import { normalizeTableAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, isSelectionInTable } from "./tableSelection";
 import {
@@ -63,24 +61,13 @@ const PARAGRAPH_STYLES = [
 
 interface EditorToolbarProperties {
   editor: Editor;
-  pageSetup: ResolvedPageSetup;
-  onPageSetupChange: (presetId: string, orientation: PageOrientation) => void;
-  zoomPercent: number;
-  onZoomChange: (nextZoom: number) => void;
   onSearchOpen: () => void;
 }
 
 export function EditorToolbar({
   editor,
-  pageSetup,
-  onPageSetupChange,
-  zoomPercent,
-  onZoomChange,
   onSearchOpen,
 }: EditorToolbarProperties) {
-  // WHY: Dialog state lives in the toolbar (its openers live here) —
-  // margins stay controlled by the page above (single source of truth).
-  const [pageSetupOpen, setPageSetupOpen] = useState(false);
   // WHY: Live snapshot of selection-dependent state (marks, alignment, fonts,
   // headings, line height). Without this the toolbar only refreshed when the
   // debounced autosave re-rendered the page — dropdowns looked stuck.
@@ -127,6 +114,7 @@ export function EditorToolbar({
         imageSelected: selectionNodeName(liveEditor) === "image" || liveEditor.isActive("image"),
         inTable: isSelectionInTable(liveEditor.state.selection),
         imageWidth: (liveEditor.getAttributes("image").width as number | null | undefined) ?? null,
+        imageAlt: (liveEditor.getAttributes("image").alt as string | null | undefined) ?? null,
         canAddRowBefore: liveEditor.can().addRowBefore(),
         canAddRowAfter: liveEditor.can().addRowAfter(),
         canDeleteRow: liveEditor.can().deleteRow(),
@@ -360,7 +348,7 @@ export function EditorToolbar({
             triggers a swap — selection alone decides. */}
         <div key={context} className={`fly-context-swap flex min-w-0 items-center gap-0 ${exhausted ? "flex-wrap" : "flex-nowrap"}`}>
           {context === "image" ? (
-            <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} hiddenIds={hiddenIds} />
+            <ImageContextTools editor={editor} imageWidth={toolbarState.imageWidth} imageAlt={toolbarState.imageAlt} hiddenIds={hiddenIds} />
           ) : context === "table" ? (
             <TableContextTools editor={editor} snapshot={toolbarState} hiddenIds={hiddenIds} />
           ) : context === "link" ? (
@@ -369,12 +357,6 @@ export function EditorToolbar({
             <DefaultSecondaryTools
               editor={editor}
               snapshot={toolbarState}
-              pageSetup={pageSetup}
-              onPageSetupChange={onPageSetupChange}
-              pageSetupOpen={pageSetupOpen}
-              onPageSetupOpenChange={setPageSetupOpen}
-              zoomPercent={zoomPercent}
-              onZoomChange={onZoomChange}
               onSearchOpen={onSearchOpen}
               hiddenIds={hiddenIds}
             />

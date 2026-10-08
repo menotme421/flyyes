@@ -190,14 +190,7 @@ export function DocumentEditor({
           heights never open a slit that scrolled content bleeds through)
           so formatting stays reachable on page 10. */}
       <div className="fly-ribbon-bar no-print sticky top-[calc(var(--editor-bar-top,53px)-1px)] z-10 rounded-none bg-background">
-        <EditorToolbar
-          editor={editor}
-          pageSetup={pageSetup}
-          onPageSetupChange={onPageSetupChange}
-          zoomPercent={zoomPercent}
-          onZoomChange={onZoomChange}
-          onSearchOpen={() => setSearchOpen(true)}
-        />
+        <EditorToolbar editor={editor} onSearchOpen={() => setSearchOpen(true)} />
       </div>
 
       {/* Gray canvas with centered white A4 page (margins = page padding).
@@ -230,8 +223,16 @@ export function DocumentEditor({
         </div>
       </div>
 
-      {/* WHY: Word-style bottom bar — live counts from the editor instance. */}
-      <StatusBar editor={editor} savedLabel={savedLabel} />
+      {/* WHY: Word-style bottom bar — live counts plus zoom and page setup
+          (moved out of the ribbon so formatting owns the bar alone). */}
+      <StatusBar
+        editor={editor}
+        savedLabel={savedLabel}
+        zoomPercent={zoomPercent}
+        onZoomChange={onZoomChange}
+        pageSetup={pageSetup}
+        onPageSetupChange={onPageSetupChange}
+      />
     </div>
   );
 }
