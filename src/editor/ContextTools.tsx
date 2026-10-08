@@ -361,7 +361,10 @@ export function DefaultSecondaryTools({
         {
           key: "doc",
           node: (
-            <div className="flex items-center gap-0">
+            // WHY: Small gap between setup and zoom (user call) — search
+            // lives in its own collapsible group above (single source; a
+            // second copy here once duplicated it into two magnifiers).
+            <div className="flex items-center gap-1">
               <ContextButton title="Page setup (paper presets)" active={false} onClick={() => onPageSetupOpenChange(true)}>
                 <DocumentConfiguration />
               </ContextButton>
