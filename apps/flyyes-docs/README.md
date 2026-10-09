@@ -48,6 +48,8 @@ npm test         # basic unit tests (validator, word count)
    - Env vars: none needed (local-first, no `.env`)
 4. Custom domain + HTTPS are free. 500 builds/month shared per account, 20k files/site.
 5. After connect, verify `_headers` applies (CSP) + OG image loads at `/og-image.png`.
+   Canonical URL: `https://flyyes-7z5.pages.dev/` (brand account `flyyes`).
+   The old `flyyes.pages.dev` project (personal account) is retired — do not link it.
 
 ## Monorepo notes (moved — Plan A done)
 - This app moved `repo root/` → `apps/flyyes-docs/` with history kept (`git mv` renames).

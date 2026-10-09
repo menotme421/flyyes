@@ -25,10 +25,14 @@ pnpm --filter @flyyes/form-creator dev     # forms (own port)
 
 ## Deploy — one Pages project per app, same repo
 
-| App | Root directory | Build | Output | Node |
-|-----|---------------|-------|--------|------|
-| flyyes-docs | `apps/flyyes-docs` | `npm run build` | `dist` | env `NODE_VERSION=22` (Pages ignores the root `.nvmrc` inside a subfolder Root) |
-| form-creator | `apps/form-creator` | `npm run build` | `dist` | env `NODE_VERSION=22` |
+| App | Pages URL (canonical) | Root directory | Build | Output | Node |
+|-----|---------------------------------------|-------|--------|------|
+| flyyes-docs | `https://flyyes-7z5.pages.dev/` | `apps/flyyes-docs` | `npm run build` | `dist` | env `NODE_VERSION=22` (Pages ignores the root `.nvmrc` in a subfolder Root) |
+| form-creator | (no project yet) | `apps/form-creator` | `npm run build` | `dist` | env `NODE_VERSION=22` |
+
+Account map: Cloudflare account **`flyyes`** (brand) holds every brand project.
+The old `flyyes.pages.dev` project in the personal account is retired; the
+stray `flyyes-ehk.pages.dev` copy is not linked anywhere.
 
 WARNING: the flyyes-docs Pages project must change Root `/` → `apps/flyyes-docs` after this move, or its builds fail. form-creator gets a brand-new Pages project (never reuse the docs one).
 
