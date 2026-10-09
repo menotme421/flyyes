@@ -4,6 +4,9 @@
 // utility in the app is dead. These unlayered classes win instead, built on
 // Carbon spacing tokens. Non-competing utilities (flex, grid, gap, widths on
 // plain divs, colors, rounding) stay as Tailwind classes in markup.
+// FUTURE: carbon-theme — only the .fly-page* frames, .fly-banner*,
+// .fly-title-row* chrome below are brand-shared; editor canvas rules
+// (.word-page, .page-spacer, .page-sheet) stay in the docs app.
 
 @use "@carbon/react/scss/spacing" as spacing;
 

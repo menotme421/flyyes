@@ -4,6 +4,8 @@ import { dismissToast, subscribeToasts, type ToastItem } from "./toast";
 
 // WHY: Fixed bottom-right stack (the old sonner position) so existing
 // "watch for the toast" habits keep working.
+// FUTURE: carbon-theme — ToastHost + toast.ts move together as the shared
+// brand notifier (no docs logic here).
 export function ToastHost() {
   const [items, setItems] = useState<ToastItem[]>([]);
 

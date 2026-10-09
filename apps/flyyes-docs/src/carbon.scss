@@ -2,6 +2,8 @@
 // components, grid, themes, type, and the CSS reset. Imported BEFORE
 // index.css in main.tsx so the existing Tailwind tokens/utilities keep
 // winning conflicts until the later removal phase.
+// FUTURE: carbon-theme — this whole file moves as-is into
+// packages/carbon-theme (no app logic here, brand-only).
 // $font-path matches the official Carbon + Vite example so Plex resolves
 // from the installed @ibm/plex package (bundled locally, works offline).
 @use "@carbon/react" with (

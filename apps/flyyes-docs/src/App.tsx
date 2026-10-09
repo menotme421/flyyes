@@ -8,6 +8,9 @@ import { HomePage } from "@/pages/HomePage";
 // WHY: No react-router (minimize dependencies). Two views cover the whole flow.
 // Browser history is synced manually so the browser back/forward buttons move
 // between list and editor — the in-app back button was removed for this reason.
+// FUTURE: carbon-theme — the Carbon Theme wrapper + OS dark-mode hook +
+// brand Header lockup below are the shared shell; HomePage/EditorPage
+// switching stays app-specific.
 type AppView = { name: "home" } | { name: "editor"; documentId: string };
 
 interface HistoryState {

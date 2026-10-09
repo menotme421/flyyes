@@ -2,7 +2,7 @@
 
 Simple, fast, private docs that live **in your browser**. No login, no server, $0 hosting on Cloudflare Pages.
 
-Built with Vite + React + TypeScript + Tailwind v4 + shadcn UI in the default zinc theme (Radix primitives you own, Inter typeface) + TipTap + Dexie (IndexedDB) + free mammoth/docx/DOMPurify.
+Built with Vite + React + TypeScript + Tailwind v4 + Carbon Design System (`@carbon/react`, IBM Plex) + TipTap + Dexie (IndexedDB) + docx.
 
 ## What it does
 - Home grid: A4 thumbnail cards (live first-page miniature), one-tap + tile, hover rename, confirm-then-permanent-delete, pagination
@@ -33,10 +33,27 @@ npm test         # basic unit tests (validator, word count)
 ```
 
 ## Deploy to Cloudflare Pages (free, unlimited bandwidth)
-1. Push this folder to GitHub.
-2. Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect Git repo.
-3. Build command: `npm run build`, Output: `dist`.
-4. Custom domain + HTTPS are free. 500 builds/month, 20k files/site.
+> WARNING — monorepo move: this app now lives at `apps/flyyes-docs/`.
+> In the existing Pages project, change **Root directory: `/` → `apps/flyyes-docs`**,
+> keep build `npm run build`, output `dist`. Until you change it, deploys will
+> fail (Pages looks for `package.json` at the old root).
+1. Push this repo to GitHub.
+2. Cloudflare Dashboard → Workers & Pages → existing flyyes project → Settings → Builds.
+3. Exact saved settings:
+   - Framework preset: `Vite`
+   - **Root directory: `apps/flyyes-docs`**
+   - Build command: `npm run build`, Output directory: `dist`
+   - Node version: `22` (pinned via root `.nvmrc`; Pages reads it)
+   - Env vars: none needed (local-first, no `.env`)
+4. Custom domain + HTTPS are free. 500 builds/month shared per account, 20k files/site.
+5. After connect, verify `_headers` applies (CSP) + OG image loads at `/og-image.png`.
+
+## Monorepo notes (moved — Plan A done)
+- This app moved `repo root/` → `apps/flyyes-docs/` with history kept (`git mv` renames).
+- Future `packages/carbon-theme` surface (do NOT extract yet): `src/carbon.scss`, `src/styles/flyyes.scss` layout tokens, `src/components/ToastHost.tsx` + `src/components/toast.ts`, brand header in `src/App.tsx` (`Header` + `fly-brand-*`), OS dark-mode `Theme white/g100` hook. Marked `FUTURE: carbon-theme` in code.
+- Stay app-specific (never move to shared): TipTap editor in `src/editor/`, Dexie/IndexedDB in `src/storage/` + `src/services/documentService.ts`, DOCX/Markdown export, TipTap print CSS in `src/index.css`.
+- Alias rule: `@/*` → `./src/*` (relative to this folder, survives the move).
+- Backend rule: local-first. A product needing AI/DB gets its own Workers + D1/R2 inside its app folder.
 
 ## Folder structure
 ```
