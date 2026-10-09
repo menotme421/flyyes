@@ -269,13 +269,14 @@ async function convertNode(node: TipTapNode, lib: any, imageContext: ImageExport
         try {
           const { data, type } = dataUrlToUint8(src);
           const box = docxImageBox(node.attrs, undefined);
+          const size = docxImageSize(box, widthPct, node.attrs?.height);
           return new Paragraph({
             children: [
               new ImageRun({
                 data,
                 transformation: {
-                  width: Math.round((box.width * widthPct) / 100),
-                  height: Math.round((box.height * widthPct) / 100),
+                  width: size.width,
+                  height: size.height,
                 },
                 type,
               }),
@@ -294,13 +295,14 @@ async function convertNode(node: TipTapNode, lib: any, imageContext: ImageExport
           return null;
         }
         const box = docxImageBox(node.attrs, { width: fetched.width, height: fetched.height });
+        const size = docxImageSize(box, widthPct, node.attrs?.height);
         return new Paragraph({
           children: [
             new ImageRun({
               data: fetched.data,
               transformation: {
-                width: Math.round((box.width * widthPct) / 100),
-                height: Math.round((box.height * widthPct) / 100),
+                width: size.width,
+                height: size.height,
               },
               type: fetched.type,
             }),
@@ -405,6 +407,29 @@ function imageWidthPercent(widthAttr: unknown): number {
   return typeof widthAttr === "number" && Number.isFinite(widthAttr)
     ? Math.min(100, Math.max(10, Math.round(widthAttr)))
     : 100;
+}
+
+// Height shares width's unit (% of page width), clamped to the editor bounds.
+function imageHeightPercent(heightAttr: unknown): number | null {
+  return typeof heightAttr === "number" && Number.isFinite(heightAttr)
+    ? Math.min(300, Math.max(5, Math.round(heightAttr)))
+    : null;
+}
+
+// WHY: Pure size math (exported for tests). Height override derives from the
+// rendered width in the same unit — no natural dims needed. Null height =
+// aspect-locked (today's math), so untouched images export byte-identical.
+export function docxImageSize(
+  box: { width: number; height: number },
+  widthPct: number,
+  heightAttr: unknown
+): { width: number; height: number } {
+  const renderedWidth = Math.round((box.width * widthPct) / 100);
+  const heightPct = imageHeightPercent(heightAttr);
+  if (heightPct === null || widthPct <= 0) {
+    return { width: renderedWidth, height: Math.round((box.height * widthPct) / 100) };
+  }
+  return { width: renderedWidth, height: Math.max(1, Math.round((renderedWidth * heightPct) / widthPct)) };
 }
 
 // WHY: Aspect-correct box — true pixels when known (uploads, fetched remotes),

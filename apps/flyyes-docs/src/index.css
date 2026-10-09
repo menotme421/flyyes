@@ -325,29 +325,91 @@ body {
   height: auto;
   border-radius: 4px;
 }
-/* WHY: Drag-to-resize wrapper (owned ResizableImage node view). The handle
-   shows only on selection and never prints (no-print). */
+/* WHY: Docs-style image selection (owned ResizableImage node view). 2px blue
+   outline flush on the image + solid blue squares: four corners (proportional)
+   plus four edge midpoints (single-axis stretch). Fixed Carbon blue
+   (#0f62fe, Docs-blue family): the sheet stays white in both OS modes, so one
+   color reads everywhere. Handles show only on selection and never print
+   (no-print). No rotation dot — rotation has no model yet, and a dead handle
+   would lie about what the app can do. */
 .resizable-image {
   position: relative;
   max-width: 100%;
 }
 .resizable-image.ProseMirror-selectednode {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 2px solid #0f62fe;
+  outline-offset: 0;
+  border-radius: 2px;
 }
 .image-resize-handle {
   position: absolute;
-  right: -7px;
-  bottom: -7px;
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  background: var(--primary);
-  border: 2px solid var(--background);
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #0f62fe;
+  /* WHY: White ring so the square reads over image content too — corners sit
+     on the photo itself, where bare blue would sink into dark pixels. */
+  border: 2px solid #fff;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
-  cursor: nwse-resize;
   touch-action: none;
+  z-index: 1;
+}
+/* WHY: Fat invisible hit area — the 12px square is a Docs-true visual, but a
+   28px grab target is what fingers (and hurried cursors) actually need. */
+.image-resize-handle::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.image-resize-ne {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  cursor: nesw-resize;
+}
+.image-resize-se {
+  bottom: 0;
+  right: 0;
+  transform: translate(50%, 50%);
+  cursor: nwse-resize;
+}
+.image-resize-sw {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+  cursor: nesw-resize;
+}
+.image-resize-nw {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  cursor: nwse-resize;
+}
+/* WHY: Edge midpoints for single-axis stretch (Word-style 1D): east/west ride
+   width, north/south ride height. Same blue square language as the corners. */
+.image-resize-e {
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+  cursor: ew-resize;
+}
+.image-resize-w {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+}
+.image-resize-n {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: ns-resize;
+}
+.image-resize-s {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  cursor: ns-resize;
 }
 .tiptap a {
   color: #2563eb;
