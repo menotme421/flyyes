@@ -27,8 +27,8 @@ pnpm --filter @flyyes/form-creator dev     # forms (own port)
 
 | App | Root directory | Build | Output | Node |
 |-----|---------------|-------|--------|------|
-| flyyes-docs | `apps/flyyes-docs` | `npm run build` | `dist` | `22` via `.nvmrc` |
-| form-creator | `apps/form-creator` | `npm run build` | `dist` | `22` via `.nvmrc` |
+| flyyes-docs | `apps/flyyes-docs` | `npm run build` | `dist` | env `NODE_VERSION=22` (Pages ignores the root `.nvmrc` inside a subfolder Root) |
+| form-creator | `apps/form-creator` | `npm run build` | `dist` | env `NODE_VERSION=22` |
 
 WARNING: the flyyes-docs Pages project must change Root `/` → `apps/flyyes-docs` after this move, or its builds fail. form-creator gets a brand-new Pages project (never reuse the docs one).
 

@@ -41,9 +41,10 @@ npm test         # basic unit tests (validator, word count)
 2. Cloudflare Dashboard → Workers & Pages → existing flyyes project → Settings → Builds.
 3. Exact saved settings:
    - Framework preset: `Vite`
-   - **Root directory: `apps/flyyes-docs`**
+   - **Root directory: `apps/flyyes-docs`** (no leading slash)
    - Build command: `npm run build`, Output directory: `dist`
-   - Node version: `22` (pinned via root `.nvmrc`; Pages reads it)
+   - Env var: `NODE_VERSION=22` (required — Vite 8 needs Node 22; Pages does
+     not read the root `.nvmrc` when Root is a subfolder)
    - Env vars: none needed (local-first, no `.env`)
 4. Custom domain + HTTPS are free. 500 builds/month shared per account, 20k files/site.
 5. After connect, verify `_headers` applies (CSP) + OG image loads at `/og-image.png`.

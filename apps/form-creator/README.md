@@ -18,7 +18,7 @@ pnpm --filter @flyyes/form-creator dev
    - **Root directory: `apps/form-creator`** (this is what keeps deploys independent)
    - Build command: `npm run build` (Pages runs it inside the root dir)
    - Output directory: `dist`
-   - Node version: `22` via root `.nvmrc`
+   - Env var: `NODE_VERSION=22` (Pages ignores the root `.nvmrc` in a subfolder Root)
 3. Custom domain + HTTPS free.
 
 ## Status
