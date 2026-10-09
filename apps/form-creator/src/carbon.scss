@@ -1,0 +1,8 @@
+// WHY: IBM Carbon foundation, same pattern as flyyes-docs.
+// FUTURE: carbon-theme — this file moves as-is into the shared package.
+@use "@carbon/react" with (
+  $font-path: "@ibm/plex"
+);
+
+@use "@carbon/react/scss/type" as carbon-type;
+@include carbon-type.type-classes();

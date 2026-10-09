@@ -1,0 +1,7 @@
+{
+  "name": "@flyyes/tsconfig",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "files": ["base.json"]
+}
