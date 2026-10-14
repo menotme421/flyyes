@@ -9,8 +9,8 @@ apps/
   flyyes-docs/     # live docs app (moved from repo root, history kept)
   form-creator/    # new: URL + P2P low-cost forms (scaffold shell)
 packages/
-  carbon-theme/    # placeholder — future unified brand (NOT wired yet)
-  tsconfig/        # shared TS base (@flyyes/tsconfig/base.json)
+  ui/            # brand system (@flyyes/ui, shadcn radix-lyra) — shared
+  tsconfig/      # shared TS base (@flyyes/tsconfig/base.json)
 ```
 
 ## Commands (from repo root, needs `pnpm@10`)
@@ -40,6 +40,6 @@ WARNING: the flyyes-docs Pages project must change Root `/` → `apps/flyyes-doc
 
 ## Rules carried from AGENTS.md
 
-- Brand-shared goes to `packages/carbon-theme` only when 2 apps need it; app-specific (TipTap, Dexie, DOCX) never moves.
+- Brand-shared goes to `packages/ui` only when 2 apps need it; app-specific (TipTap, Dexie, DOCX) never moves.
 - Local-first default; a backend (Workers + D1/R2) lives inside the app that needs it.
 - Small commits, no `node_modules`/`.env`/`dist`, explain approach + trade-offs before code.

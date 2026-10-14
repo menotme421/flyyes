@@ -1,9 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-// WHY: Carbon reset first, then shell styles.
-// FUTURE: carbon-theme — both imports become the shared package.
-import './carbon.scss'
-import './app.css'
+// WHY: Brand tokens + Tailwind come from the shared package; page content
+// uses utilities inline (no app stylesheet).
+import '@flyyes/ui/styles/globals.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
