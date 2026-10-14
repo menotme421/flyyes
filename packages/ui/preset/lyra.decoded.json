@@ -1,0 +1,18 @@
+{
+  "code": "b5Tht2ovsR",
+  "url": "https://ui.shadcn.com/create?preset=b5Tht2ovsR",
+  "base": "radix",
+  "template": "vite",
+  "values": {
+    "style": "lyra",
+    "baseColor": "neutral",
+    "theme": "neutral",
+    "chartColor": "neutral",
+    "font": "roboto",
+    "fontHeading": "roboto-slab",
+    "iconLibrary": "lucide",
+    "radius": "default = 0.625rem (lyra sharpness is per-component rounded-none, not the token)",
+    "menuColor": "inverted-translucent (baked into dropdown/context-menu: bg-popover/70 + backdrop-blur)",
+    "menuAccent": "subtle"
+  }
+}

@@ -1,0 +1,1 @@
+style lyra / baseColor neutral / theme neutral / chart neutral / font roboto / heading roboto-slab / icon lucide / radius default (0.625rem; sharpness comes from hardcoded rounded-none in components) / menu inverted-translucent+subtle (baked into dropdown/context-menu code) / base radix / template vite

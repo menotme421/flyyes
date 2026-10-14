@@ -1,0 +1,3 @@
+/* WHY: Variable fonts per the import (single file each, latin + latin-ext). */
+@import "@fontsource-variable/roboto";
+@import "@fontsource-variable/roboto-slab";
