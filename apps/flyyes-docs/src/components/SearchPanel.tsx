@@ -1,6 +1,7 @@
 import { useEditorState, type Editor } from "@tiptap/react";
-import { ChevronDown, ChevronUp, Close } from "@carbon/icons-react";
-import { Button, Checkbox, IconButton, TextInput } from "@carbon/react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { Button, Checkbox, Input, Label } from "@flyyes/ui";
+import { ToolButton } from "@/editor/ToolButton";
 
 // WHY: Own file (single responsibility) — search state lives in the
 // FindAndReplace extension, this panel is only the controls. Docks top-right
@@ -56,23 +57,25 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
           event.stopPropagation();
           handleClose();
         }
+        // WHY: Stop everything while typing — window-level shortcuts must
+        // not fire mid-search term.
         event.stopPropagation();
       }}
     >
       <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="cds--type-label-02">Find and replace</span>
-        <IconButton kind="ghost" size="xs" label="Close search" onClick={handleClose}>
-          <Close />
-        </IconButton>
+        <span className="text-xs">Find and replace</span>
+        <ToolButton title="Close search" onClick={handleClose}>
+          <X size={16} />
+        </ToolButton>
       </div>
 
       <div className="flex items-center gap-1">
-        <TextInput
+        <Label htmlFor="find-input" className="sr-only">
+          Find
+        </Label>
+        <Input
           id="find-input"
-          labelText="Find"
-          hideLabel
-          size="sm"
           autoFocus
           placeholder="Find…"
           disabled={!searchReady}
@@ -84,35 +87,31 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
             }
           }}
         />
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Previous match"
+        <ToolButton
+          title="Previous match"
           disabled={!searchReady}
           onClick={() => editor.commands.goToPreviousResult()}
         >
-          <ChevronUp />
-        </IconButton>
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Next match"
+          <ChevronUp size={16} />
+        </ToolButton>
+        <ToolButton
+          title="Next match"
           disabled={!searchReady}
           onClick={() => editor.commands.goToNextResult()}
         >
-          <ChevronDown />
-        </IconButton>
+          <ChevronDown size={16} />
+        </ToolButton>
       </div>
 
-      <p className="cds--type-body-compact-01 text-muted-foreground" aria-live="polite">
+      <p className="text-sm text-muted-foreground" aria-live="polite">
         {resultsCount === 0 ? "No matches" : `${currentNumber} of ${resultsCount}`}
       </p>
 
-      <TextInput
+      <Label htmlFor="replace-input" className="sr-only">
+        Replace with
+      </Label>
+      <Input
         id="replace-input"
-        labelText="Replace with"
-        hideLabel
-        size="sm"
         placeholder="Replace with…"
         disabled={!searchReady}
         onChange={(event) => editor.commands.setReplaceTerm(event.target.value)}
@@ -125,18 +124,18 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
       />
       <div className="flex items-center gap-2">
         <Button
-          kind="tertiary"
+          variant="outline"
           size="sm"
-          className="fly-panel-btn flex-1"
+          className="flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replace()}
         >
           Replace
         </Button>
         <Button
-          kind="tertiary"
+          variant="outline"
           size="sm"
-          className="fly-panel-btn flex-1"
+          className="flex-1"
           disabled={!searchReady}
           onClick={() => editor.commands.replaceAll()}
         >
@@ -145,20 +144,24 @@ export function SearchPanel({ editor, open, onClose }: SearchPanelProperties) {
       </div>
 
       <div className="flex items-center gap-4">
-        <Checkbox
-          id="match-case"
-          labelText="Match case"
-          checked={caseSensitive}
-          disabled={!searchReady}
-          onChange={(event) => editor.commands.setCaseSensitive(event.target.checked)}
-        />
-        <Checkbox
-          id="whole-word"
-          labelText="Whole word"
-          checked={wholeWord}
-          disabled={!searchReady}
-          onChange={(event) => editor.commands.setWholeWord(event.target.checked)}
-        />
+        <span className="flex items-center gap-2">
+          <Checkbox
+            id="match-case"
+            checked={caseSensitive}
+            disabled={!searchReady}
+            onCheckedChange={(checked) => editor.commands.setCaseSensitive(checked === true)}
+          />
+          <Label htmlFor="match-case">Match case</Label>
+        </span>
+        <span className="flex items-center gap-2">
+          <Checkbox
+            id="whole-word"
+            checked={wholeWord}
+            disabled={!searchReady}
+            onCheckedChange={(checked) => editor.commands.setWholeWord(checked === true)}
+          />
+          <Label htmlFor="whole-word">Whole word</Label>
+        </span>
       </div>
       </div>
     </div>

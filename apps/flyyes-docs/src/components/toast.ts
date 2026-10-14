@@ -1,8 +1,7 @@
-// WHY: Minimal app-wide toasts on Carbon ToastNotification (replaces sonner).
+// WHY: Minimal app-wide toasts rendered by ToastHost below.
 // A plain pub/sub module so non-React services (export) can fire toasts;
-// ToastHost (below in ToastHost.tsx) renders them. At most 4 stack up,
-// each auto-dismisses after 6s (Carbon's timeout hides it, the timer here
-// drops it from state even if onClose ever stops firing).
+// ToastHost renders them. At most 4 stack up,
+// each auto-dismisses after ~6.5s (the timer here drops it from state).
 
 export type ToastKind = "error" | "info" | "success" | "warning";
 

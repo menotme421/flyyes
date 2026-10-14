@@ -2,11 +2,11 @@
 
 Simple, fast, private docs that live **in your browser**. No login, no server, $0 hosting on Cloudflare Pages.
 
-Built with Vite + React + TypeScript + Tailwind v4 + Carbon Design System (`@carbon/react`, IBM Plex) + TipTap + Dexie (IndexedDB) + docx.
+Built with Vite + React + TypeScript + Tailwind v4 + `@flyyes/ui` brand system (Roboto, Radix primitives, lucide icons) + TipTap + Dexie (IndexedDB) + docx.
 
 ## What it does
 - Home grid: A4 thumbnail cards (live first-page miniature), one-tap + tile, hover rename, confirm-then-permanent-delete, pagination
-- Word/Docs-ordered toolbar (File, History, Styles, Font, Paragraph, Insert, View): styles dropdown (H1-H6), font name/size, bold/italic/underline/strike, subscript/superscript, text color/highlight, clear formatting, align, line spacing, lists (bullet, numbered, task), code block, indent, quote, find & replace (Ctrl+F), single Insert menu (link, image URL + upload, resizable images, page break, 10×8 table grid picker), single Export menu, Edit/Pages switch
+- Word/Docs-ordered toolbar: styles dropdown (H1-H6), font name/size, bold/italic/underline/strike, subscript/superscript, text color/highlight, clear formatting, align, line spacing, lists (bullet, numbered, task), code block, indent, quote, find & replace (Ctrl+F), focused insert buttons (link, image URL + upload, resizable images, page break, 10×8 table grid picker), Export menu, Edit/Pages switch; right side swaps by selection (image/table/link panels)
 - Bottom status bar: live word + character counts, save status
 - Word-style color picking everywhere (text, highlight, cell fill): procedural 127-cell HSL honeycomb (pure SVG, zero color data) + grayscale + preview halo, inspector (HEX/RGB/HSV/CMYK, WCAG contrast, harmony palettes), plus a Custom tab (spectrum square, hue slider, hex)
 - Right-click table menu with flyout submenus (Rows, Columns, Cells with merge/split, Fill, Style with header row/column/borders/alignment, Delete) — right-clicks inside a live cell selection keep it so merge stays enabled; column widths drag from cell-edge handles — right-clicks outside tables keep the native browser menu
@@ -20,16 +20,17 @@ Built with Vite + React + TypeScript + Tailwind v4 + Carbon Design System (`@car
 
 ## Setup
 ```bash
-npm install
-npm run dev    # http://localhost:5173
+# from repo root
+pnpm install
+pnpm --filter @flyyes/flyyes-docs dev    # http://localhost:5173
 ```
 
 ## Run / build
 ```bash
-npm run dev      # local dev
-npm run build    # typecheck + production build -> dist/
-npm run preview  # preview dist/
-npm test         # basic unit tests (validator, word count)
+pnpm --filter @flyyes/flyyes-docs dev      # local dev
+pnpm --filter @flyyes/flyyes-docs build    # typecheck + production build -> dist/
+pnpm --filter @flyyes/flyyes-docs preview  # preview dist/
+pnpm --filter @flyyes/flyyes-docs test     # vitest (20 files, 158 tests)
 ```
 
 ## Deploy to Cloudflare Pages (free, unlimited bandwidth)
@@ -53,7 +54,7 @@ npm test         # basic unit tests (validator, word count)
 
 ## Monorepo notes (moved — Plan A done)
 - This app moved `repo root/` → `apps/flyyes-docs/` with history kept (`git mv` renames).
-- Future `packages/carbon-theme` surface (do NOT extract yet): `src/carbon.scss`, `src/styles/flyyes.scss` layout tokens, `src/components/ToastHost.tsx` + `src/components/toast.ts`, brand header in `src/App.tsx` (`Header` + `fly-brand-*`), OS dark-mode `Theme white/g100` hook. Marked `FUTURE: carbon-theme` in code.
+- Shared brand lives in `packages/ui` (`@flyyes/ui`): tokens, fonts, ToolButton/InlineSelect patterns, ToastHost + toast notifier.
 - Stay app-specific (never move to shared): TipTap editor in `src/editor/`, Dexie/IndexedDB in `src/storage/` + `src/services/documentService.ts`, DOCX/Markdown export, TipTap print CSS in `src/index.css`.
 - Alias rule: `@/*` → `./src/*` (relative to this folder, survives the move).
 - Backend rule: local-first. A product needing AI/DB gets its own Workers + D1/R2 inside its app folder.
@@ -62,9 +63,8 @@ npm test         # basic unit tests (validator, word count)
 ```
 src/
   pages/         HomePage (card grid/pagination), EditorPage (title+export)
-  components/    DocumentCard, DocumentThumbnail, AppErrorBoundary, ExportMenu, UrlDialog, PageSetupDialog, ZoomSelect, DocumentPagePreview, SearchPanel, StatusBar
-  components/ui/ button, input, dialog, select, dropdown-menu, toggle, toggle-group, tooltip, separator, sonner (Radix-backed shadcn, copy-owned)
-  editor/        DocumentEditor (TipTap), EditorToolbar
+   components/    DocumentCard, DocumentThumbnail, AppErrorBoundary, ExportMenu, UrlDialog, PageSetupDialog, ZoomSelect, DocumentPagePreview, SearchPanel, StatusBar, icon16 (menu icon sizing)
+   editor/        DocumentEditor (TipTap), EditorToolbar, ToolButton + InlineSelect (shared toolbar chrome)
   storage/       documentTypes, documentDatabase (Dexie IndexedDB v1)
   services/      documentService (CRUD+paginate), exportImportService (export only)
   utils/         documentValidator, textStatistics, appLogger
@@ -76,7 +76,7 @@ tests/           validator + word-count edge cases
 - **Frontend-only, no backend:** you asked local-first, no login. Zero cost, private, instant. Trade-off: no sync across devices; V2 could add Workers + D1 + R2.
 - **TipTap over Quill/Draft.js:** actively maintained (v3.31.x), ProseMirror-based, safe defaults. Quill stale, Draft deprecated.
 - **Official free extensions for search + tasks:** `@tiptap/extension-find-and-replace` (MIT, headless — own UI in SearchPanel) and `@tiptap/extension-list` TaskList/TaskItem (MIT, GFM-compatible) instead of hand-rolled matching. Trade-off: ~30KB extra in the lazy editor chunk; search marks are screen-only decorations (never exported/printed).
-- **shadcn (Radix-backed, copy-owned) vs MUI/Chakra:** you own the code, Tailwind look, no vendor lock-in. Dialogs get focus trap + Escape, selects/dropdowns get keyboard + screen-reader semantics, toolbar buttons get tooltips, errors use Sonner toasts instead of alerts. Trade-off: Radix adds ~140KB to the initial bundle (lazy editor chunk unaffected).
+- **@flyyes/ui (Radix-backed, copy-owned) vs MUI/Chakra:** you own the code, Tailwind look, no vendor lock-in. Dialogs get focus trap + Escape, selects/dropdowns get keyboard + screen-reader semantics, toolbar buttons get tooltips, errors use brand toasts instead of alerts.
 - **Dexie/IndexedDB over localStorage:** 5MB limit too small for docs; IndexedDB holds 100s of MB.
 - **No react-router:** two views fit in state, saves a dependency.
 

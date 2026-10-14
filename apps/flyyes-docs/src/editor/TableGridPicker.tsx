@@ -51,7 +51,7 @@ export function TableGridPicker({ onSelect }: TableGridPickerProperties) {
         setHover(null);
       }}
     >
-      <p className="cds--type-label-01 fly-section-label text-center text-muted-foreground" aria-live="polite">
+      <p className="text-xs fly-section-label text-center text-muted-foreground" aria-live="polite">
         {hover ? `${hover.cols} × ${hover.rows} Table` : "Insert table"}
       </p>
       <div className="flex justify-center">

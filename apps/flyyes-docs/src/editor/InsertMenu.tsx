@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { Image, Table, Upload } from "@carbon/icons-react";
-import { IconButton, Popover, PopoverContent } from "@carbon/react";
+import { Image, Table, Upload } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@flyyes/ui";
+import { ToolButton } from "./ToolButton";
 import { fileToCompressedDataUrl } from "@/services/imageService";
 import { toast } from "@/components/toast";
 import { UrlDialog } from "@/components/UrlDialog";
@@ -39,18 +40,20 @@ export function ImageMenu({ editor }: { editor: Editor }) {
 
   return (
     <>
-      <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Insert image"
-          align="bottom"
-          autoAlign
-          onClick={() => setOpen((currently) => !currently)}
-        >
-          <Image />
-        </IconButton>
-        <PopoverContent className="fly-popover-panel w-56">
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) setOpen(false);
+        }}
+      >
+        <PopoverTrigger asChild>
+          <span>
+            <ToolButton title="Insert image" onClick={() => setOpen((currently) => !currently)}>
+              <Image size={16} />
+            </ToolButton>
+          </span>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-56">
           <button
             type="button"
             onClick={() => {
@@ -60,7 +63,7 @@ export function ImageMenu({ editor }: { editor: Editor }) {
             className="fly-menu-row text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">
-              <Image />
+              <Image size={16} />
             </span>
             <span className="flex-1 text-left">Image from URL…</span>
           </button>
@@ -73,7 +76,7 @@ export function ImageMenu({ editor }: { editor: Editor }) {
             className="fly-menu-row text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">
-              <Upload />
+              <Upload size={16} />
             </span>
             <span className="flex-1 text-left">Upload image…</span>
           </button>
@@ -105,18 +108,20 @@ export function TableInsert({ editor }: { editor: Editor }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-start" caret>
-      <IconButton
-        kind="ghost"
-        size="sm"
-        label="Insert table"
-        align="bottom"
-        autoAlign
-        onClick={() => setOpen((currently) => !currently)}
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) setOpen(false);
+        }}
       >
-        <Table />
-      </IconButton>
-      <PopoverContent className="fly-submenu-panel max-h-[80vh] overflow-y-auto">
+        <PopoverTrigger asChild>
+          <span>
+            <ToolButton title="Insert table" onClick={() => setOpen((currently) => !currently)}>
+              <Table size={16} />
+            </ToolButton>
+          </span>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="max-h-[80vh] overflow-y-auto">
         <TableGridPicker
           onSelect={(cols, rows) => {
             // WHY: Plain tables by default — header row is opt-in via the table menu.

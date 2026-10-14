@@ -1,39 +1,48 @@
 import { Fragment, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import {
-  Checkmark,
+  AlignCenterVertical,
+  AlignEndVertical,
+  AlignStartVertical,
+  Baseline,
+  Check,
   Code,
-  ColorPalette,
-  Column,
+  Columns2,
+  EllipsisVertical,
+  Grid2x2,
+  IndentDecrease,
+  IndentIncrease,
   Link,
-  ListChecked,
-  OverflowMenuVertical,
-  PageBreak,
-  Quotes,
-  Row,
+  ListChecks,
+  Palette,
+  Quote,
+  Rows2,
   Search,
-  TextIndentLess,
-  TextIndentMore,
-  TextStrikethrough,
-  TextSubscript,
-  TextSuperscript,
-  TrashCan,
-} from "@carbon/icons-react";
-import { Button, Dropdown, IconButton, Popover, PopoverContent, TextInput } from "@carbon/react";
+  SeparatorHorizontal,
+  SquareArrowDown,
+  SquareArrowLeft,
+  SquareArrowRight,
+  SquareArrowUp,
+  Strikethrough,
+  Subscript,
+  Superscript,
+  TableCellsMerge,
+  TableCellsSplit,
+  Trash2,
+} from "lucide-react";
+import {
+  Button,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@flyyes/ui";
 import { ColorPicker } from "@/components/ColorPicker";
-import { LayoutListMove } from "@/components/icons/layout-list-move";
-import { SheetColumnLeft } from "@/components/icons/sheet-column-left";
-import { SheetColumnRight } from "@/components/icons/sheet-column-right";
-import { SheetRowAbove } from "@/components/icons/sheet-row-above";
-import { SheetRowBelow } from "@/components/icons/sheet-row-below";
-import { TableBordersIcon } from "@/components/icons/table-borders";
-import { TableCellsMergeIcon } from "@/components/icons/table-cells-merge";
-import { TableCellsSplitIcon } from "@/components/icons/table-cells-split";
 import { UrlDialog } from "@/components/UrlDialog";
 import type { VerticalAlignment } from "./tablePropertiesExtension";
-import { TableValignBottomIcon } from "@/components/icons/table-valign-bottom";
-import { TableValignMiddleIcon } from "@/components/icons/table-valign-middle";
-import { TableValignTopIcon } from "@/components/icons/table-valign-top";
+import { InlineSelect } from "./InlineSelect";
+import { ToolButton } from "./ToolButton";
 import { ImageMenu, TableInsert } from "./InsertMenu";
 
 // WHY: Right-zone swap cluster (single responsibility) — every non-core tool
@@ -90,23 +99,6 @@ export function ToolbarSeparator() {
   return <div aria-hidden="true" className="fly-separator" />;
 }
 
-function ContextButton({ title, active, disabled, onClick, children }: {
-  title: string;
-  active: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  // WHY: Same Carbon IconButton chrome as the core row (tooltip + selected
-  // state) so swapped panels read as the same bar, not a different UI.
-  // autoAlign flips edge tooltips (right-edge buttons) back on screen.
-  return (
-    <IconButton kind="ghost" size="sm" label={title} align="bottom" autoAlign isSelected={active} disabled={disabled} onClick={onClick}>
-      {children}
-    </IconButton>
-  );
-}
-
 // WHY: Single-source tools for the responsive overflow — one def renders the
 // bar button AND the overflow-menu row, so collapsed tools stay reachable
 // without duplicating labels, icons, or commands (copies would diverge).
@@ -131,18 +123,17 @@ export interface OverflowBarGroup {
 
 function BarToolButton({ tool }: { tool: OverflowBarTool }) {
   if (tool.variant === "text") {
-    // WHY: fly-panel-btn (see flyyes.scss) — Carbon's triple trailing
-    // padding would unbalance these short preset labels.
+    // WHY: Short preset labels as ghost buttons (isSelected → pressed tint).
     return (
-      <Button kind="ghost" size="sm" className="fly-panel-btn" isSelected={tool.active} disabled={tool.disabled} onClick={tool.run}>
+      <Button variant="ghost" size="sm" aria-pressed={tool.active} disabled={tool.disabled} onClick={tool.run} className={tool.active ? "bg-accent text-accent-foreground" : undefined}>
         {tool.label}
       </Button>
     );
   }
   return (
-    <ContextButton title={tool.label} active={tool.active} disabled={tool.disabled} onClick={tool.run}>
+    <ToolButton title={tool.label} active={tool.active} disabled={tool.disabled} onClick={tool.run}>
       {tool.icon}
-    </ContextButton>
+    </ToolButton>
   );
 }
 
@@ -182,21 +173,27 @@ export function PanelOverflowMenu({ label, sections }: {
   const [open, setOpen] = useState(false);
   const hiddenCount = sections.reduce((count, section) => count + section.tools.length, 0);
   return (
-    <Popover open={open} onRequestClose={() => setOpen(false)} align="bottom-end" caret>
-      <IconButton
-        kind="ghost"
-        size="sm"
-        label={hiddenCount > 0 ? `${label} (${hiddenCount} more)` : label}
-        align="bottom"
-        autoAlign
-        onClick={() => setOpen((currently) => !currently)}
-      >
-        <OverflowMenuVertical />
-      </IconButton>
-      <PopoverContent className="fly-popover-panel w-64">
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setOpen(false);
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={hiddenCount > 0 ? `${label} (${hiddenCount} more)` : label}
+          title={hiddenCount > 0 ? `${label} (${hiddenCount} more)` : label}
+          onClick={() => setOpen((currently) => !currently)}
+        >
+          <EllipsisVertical size={16} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64">
         {sections.map((section) => (
           <div key={section.heading}>
-            <p className="cds--type-label-02 fly-menu-label text-muted-foreground">{section.heading}</p>
+            <p className="text-xs fly-menu-label text-muted-foreground">{section.heading}</p>
             {section.tools.map((tool) => (
               <OverflowRow
                 key={tool.id}
@@ -230,9 +227,9 @@ export function LinkButton({ editor, linkActive, selectionEmpty, previousLinkHre
   const [dialogOpen, setDialogOpen] = useState(false);
   return (
     <>
-      <ContextButton title="Link…" active={linkActive} onClick={() => setDialogOpen(true)}>
-        <Link />
-      </ContextButton>
+      <ToolButton title="Link…" active={linkActive} onClick={() => setDialogOpen(true)}>
+        <Link size={16} />
+      </ToolButton>
       <UrlDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
@@ -300,7 +297,7 @@ function getDefaultGroups(
       id: "search",
       sectionLabel: "Search",
       priority: 60,
-      tools: [{ id: "search", label: "Find and replace (Ctrl+F)", icon: <Search />, active: false, run: onSearchOpen }],
+      tools: [{ id: "search", label: "Find and replace (Ctrl+F)", icon: <Search size={16} />, active: false, run: onSearchOpen }],
     },
     {
       id: "pagebreak",
@@ -309,7 +306,7 @@ function getDefaultGroups(
       tools: [{
         id: "pagebreak",
         label: "Page break",
-        icon: <PageBreak />,
+        icon: <SeparatorHorizontal size={16} />,
         active: false,
         run: () => editor.chain().focus().setHorizontalRule().run(),
       }],
@@ -319,8 +316,8 @@ function getDefaultGroups(
       sectionLabel: "Text style",
       priority: 20,
       tools: [
-        { id: "strike", label: "Strikethrough", icon: <TextStrikethrough />, active: snapshot.strike, run: () => editor.chain().focus().toggleStrike().run() },
-        { id: "task", label: "Task list", icon: <ListChecked />, active: snapshot.taskList, run: () => editor.chain().focus().toggleTaskList().run() },
+        { id: "strike", label: "Strikethrough", icon: <Strikethrough size={16} />, active: snapshot.strike, run: () => editor.chain().focus().toggleStrike().run() },
+        { id: "task", label: "Task list", icon: <ListChecks size={16} />, active: snapshot.taskList, run: () => editor.chain().focus().toggleTaskList().run() },
       ],
     },
     {
@@ -328,8 +325,8 @@ function getDefaultGroups(
       sectionLabel: "Indent",
       priority: 15,
       tools: [
-        { id: "outdent", label: "Decrease indent", icon: <TextIndentLess />, active: false, run: () => editor.commands.decreaseIndent() },
-        { id: "indent", label: "Increase indent", icon: <TextIndentMore />, active: snapshot.indented, run: () => editor.commands.increaseIndent() },
+        { id: "outdent", label: "Decrease indent", icon: <IndentDecrease size={16} />, active: false, run: () => editor.commands.decreaseIndent() },
+        { id: "indent", label: "Increase indent", icon: <IndentIncrease size={16} />, active: snapshot.indented, run: () => editor.commands.increaseIndent() },
       ],
     },
   ];
@@ -371,24 +368,15 @@ export function DefaultSecondaryTools({
         {
           key: "spacing",
           node: (
-            <div className="fly-roomy-menu-md w-28 shrink-0">
-              <Dropdown
+            <div className="w-28 shrink-0">
+              <InlineSelect
                 id="line-spacing"
-                titleText="Line spacing"
-                hideLabel
-                type="inline"
-                label="Spacing"
-                size="sm"
+                label="Line spacing"
+                value={snapshot.lineHeight ?? "1.7 (Default)"}
+                displayValue={snapshot.lineHeight ?? "1.7"}
+                icon={<Baseline className="h-4 w-4 shrink-0" />}
                 items={["1.7 (Default)", ...LINE_SPACINGS]}
-                selectedItem={snapshot.lineHeight ?? "1.7 (Default)"}
-                renderSelectedItem={(item) => (
-                  <span className="flex items-center gap-1.5">
-                    <LayoutListMove className="h-4 w-4 shrink-0" />
-                    <span>{item === "1.7 (Default)" ? "1.7" : item}</span>
-                  </span>
-                )}
-                onChange={(data) => {
-                  const spacing = data.selectedItem;
+                onChange={(spacing) => {
                   if (!spacing || spacing === "1.7 (Default)") editor.chain().focus().unsetLineHeight().run();
                   else editor.chain().focus().setLineHeight(spacing).run();
                 }}
@@ -431,7 +419,7 @@ function getImageDeleteGroup(editor: Editor): OverflowBarGroup {
     id: "imagedelete",
     sectionLabel: "Image",
     priority: 50,
-    tools: [{ id: "delete", label: "Delete image", icon: <TrashCan />, active: false, run: () => editor.chain().focus().deleteSelection().run() }],
+    tools: [{ id: "delete", label: "Delete image", icon: <Trash2 size={16} />, active: false, run: () => editor.chain().focus().deleteSelection().run() }],
   };
 }
 
@@ -475,12 +463,12 @@ export function ImageContextTools({ editor, imageWidth, imageAlt, hiddenIds }: {
           key: "alttext",
           node: (
             <div className="w-40 shrink-0">
-              <TextInput
+              <Label htmlFor="image-alt-text" className="sr-only">
+                Image alt text
+              </Label>
+              <Input
                 key={imageAlt ?? ""}
                 id="image-alt-text"
-                labelText="Image alt text"
-                hideLabel
-                size="sm"
                 placeholder="Alt text"
                 defaultValue={imageAlt ?? ""}
                 maxLength={125}
@@ -510,9 +498,9 @@ function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): Overflo
       sectionLabel: "Table rows",
       priority: 50,
       tools: [
-        { id: "rowabove", label: "Row above", icon: <SheetRowAbove />, active: false, disabled: !snapshot.canAddRowBefore, run: () => editor.chain().focus().addRowBefore().run() },
-        { id: "rowbelow", label: "Row below", icon: <SheetRowBelow />, active: false, disabled: !snapshot.canAddRowAfter, run: () => editor.chain().focus().addRowAfter().run() },
-        { id: "deleterow", label: "Delete row", icon: <TrashCan />, active: false, disabled: !snapshot.canDeleteRow, run: () => editor.chain().focus().deleteRow().run() },
+        { id: "rowabove", label: "Row above", icon: <SquareArrowUp size={16} />, active: false, disabled: !snapshot.canAddRowBefore, run: () => editor.chain().focus().addRowBefore().run() },
+        { id: "rowbelow", label: "Row below", icon: <SquareArrowDown size={16} />, active: false, disabled: !snapshot.canAddRowAfter, run: () => editor.chain().focus().addRowAfter().run() },
+        { id: "deleterow", label: "Delete row", icon: <Trash2 size={16} />, active: false, disabled: !snapshot.canDeleteRow, run: () => editor.chain().focus().deleteRow().run() },
       ],
     },
     {
@@ -520,9 +508,9 @@ function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): Overflo
       sectionLabel: "Table columns",
       priority: 40,
       tools: [
-        { id: "colleft", label: "Column left", icon: <SheetColumnLeft />, active: false, disabled: !snapshot.canAddColumnBefore, run: () => editor.chain().focus().addColumnBefore().run() },
-        { id: "colright", label: "Column right", icon: <SheetColumnRight />, active: false, disabled: !snapshot.canAddColumnAfter, run: () => editor.chain().focus().addColumnAfter().run() },
-        { id: "deletecol", label: "Delete column", icon: <TrashCan />, active: false, disabled: !snapshot.canDeleteColumn, run: () => editor.chain().focus().deleteColumn().run() },
+        { id: "colleft", label: "Column left", icon: <SquareArrowLeft size={16} />, active: false, disabled: !snapshot.canAddColumnBefore, run: () => editor.chain().focus().addColumnBefore().run() },
+        { id: "colright", label: "Column right", icon: <SquareArrowRight size={16} />, active: false, disabled: !snapshot.canAddColumnAfter, run: () => editor.chain().focus().addColumnAfter().run() },
+        { id: "deletecol", label: "Delete column", icon: <Trash2 size={16} />, active: false, disabled: !snapshot.canDeleteColumn, run: () => editor.chain().focus().deleteColumn().run() },
       ],
     },
     {
@@ -530,13 +518,13 @@ function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): Overflo
       sectionLabel: "Table cells",
       priority: 30,
       tools: [
-        { id: "merge", label: "Merge cells", icon: <TableCellsMergeIcon />, active: false, disabled: !snapshot.canMergeCells, run: () => editor.chain().focus().mergeCells().run() },
-        { id: "split", label: "Split cell", icon: <TableCellsSplitIcon />, active: false, disabled: !snapshot.canSplitCell, run: () => editor.chain().focus().splitCell().run() },
+        { id: "merge", label: "Merge cells", icon: <TableCellsMerge size={16} />, active: false, disabled: !snapshot.canMergeCells, run: () => editor.chain().focus().mergeCells().run() },
+        { id: "split", label: "Split cell", icon: <TableCellsSplit size={16} />, active: false, disabled: !snapshot.canSplitCell, run: () => editor.chain().focus().splitCell().run() },
         // WHY: Row/Column glyphs (not two checkmarks) so the pair scans as
         // distinct targets — tooltips carry the full meaning.
-        { id: "headerrow", label: "Header row", icon: <Row />, active: snapshot.headerRowOn, disabled: !snapshot.canToggleHeaderRow, run: () => editor.chain().focus().toggleHeaderRow().run() },
-        { id: "headercol", label: "Header column", icon: <Column />, active: snapshot.headerColumnOn, disabled: !snapshot.canToggleHeaderColumn, run: () => editor.chain().focus().toggleHeaderColumn().run() },
-        { id: "deletetable", label: "Delete table", icon: <TrashCan />, active: false, disabled: !snapshot.canDeleteTable, run: () => editor.chain().focus().deleteTable().run() },
+        { id: "headerrow", label: "Header row", icon: <Rows2 size={16} />, active: snapshot.headerRowOn, disabled: !snapshot.canToggleHeaderRow, run: () => editor.chain().focus().toggleHeaderRow().run() },
+        { id: "headercol", label: "Header column", icon: <Columns2 size={16} />, active: snapshot.headerColumnOn, disabled: !snapshot.canToggleHeaderColumn, run: () => editor.chain().focus().toggleHeaderColumn().run() },
+        { id: "deletetable", label: "Delete table", icon: <Trash2 size={16} />, active: false, disabled: !snapshot.canDeleteTable, run: () => editor.chain().focus().deleteTable().run() },
       ],
     },
     {
@@ -544,9 +532,9 @@ function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): Overflo
       sectionLabel: "Cell vertical alignment",
       priority: 10,
       tools: [
-        { id: "valigntop", label: "Align text top", icon: <TableValignTopIcon />, active: snapshot.cellVertical === "top", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "top").run() },
-        { id: "valignmiddle", label: "Align text middle", icon: <TableValignMiddleIcon />, active: snapshot.cellVertical === "middle", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", null).run() },
-        { id: "valignbottom", label: "Align text bottom", icon: <TableValignBottomIcon />, active: snapshot.cellVertical === "bottom", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "bottom").run() },
+        { id: "valigntop", label: "Align text top", icon: <AlignStartVertical size={16} />, active: snapshot.cellVertical === "top", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "top").run() },
+        { id: "valignmiddle", label: "Align text middle", icon: <AlignCenterVertical size={16} />, active: snapshot.cellVertical === "middle", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", null).run() },
+        { id: "valignbottom", label: "Align text bottom", icon: <AlignEndVertical size={16} />, active: snapshot.cellVertical === "bottom", run: () => editor.chain().focus().setCellAttribute("verticalAlignment", "bottom").run() },
       ],
     },
     {
@@ -556,16 +544,10 @@ function getTableGroups(editor: Editor, snapshot: TableContextSnapshot): Overflo
       tools: [{
         id: "borders",
         label: "Borders",
-          icon: <TableBordersIcon />,
+          icon: <Grid2x2 size={16} />,
         active: snapshot.bordersOn,
         run: () => editor.chain().focus().updateAttributes("table", { borderless: snapshot.bordersOn }).run(),
       }],
-    },
-    {
-      id: "deletetable",
-      sectionLabel: "Table",
-      priority: 60,
-      tools: [{ id: "deletetable", label: "Delete table", icon: <TrashCan />, active: false, disabled: !snapshot.canDeleteTable, run: () => editor.chain().focus().deleteTable().run() }],
     },
   ];
 }
@@ -596,16 +578,18 @@ export function TableContextTools({ editor, snapshot, hiddenIds }: {
                 onClear={() => editor.chain().focus().setCellAttribute("backgroundColor", null).run()}
                 clearLabel="No fill"
               >
-                <IconButton kind="ghost" size="sm" label="Cell fill" align="bottom" autoAlign>
+                {/* WHY: No onClick — ColorPicker's own wrapper toggles; this
+                    keeps tooltip + keyboard focus on the trigger. */}
+                <ToolButton title="Cell fill">
                   <span className="flex flex-col items-center leading-none">
-                    <ColorPalette className="h-4 w-4" />
+                    <Palette className="h-4 w-4" />
                     <span
                       aria-hidden="true"
                       className="fly-color-bar h-1 w-4 rounded-sm"
                       style={{ backgroundColor: snapshot.cellFill ?? "transparent" }}
                     />
                   </span>
-                </IconButton>
+                </ToolButton>
               </ColorPicker>
             </div>
           ),
@@ -628,7 +612,7 @@ function getLinkRemoveGroup(editor: Editor): OverflowBarGroup {
       {
         id: "removelink",
         label: "Remove link",
-        icon: <TrashCan />,
+        icon: <Trash2 size={16} />,
         active: false,
         run: () => editor.chain().focus().unsetLink().run(),
       },
@@ -673,10 +657,10 @@ export function LinkContextTools({ editor, snapshot, hiddenIds }: {
 // responsive overflow home.
 export function specialistTools(editor: Editor, snapshot: DefaultSecondarySnapshot): OverflowBarTool[] {
   return [
-    { id: "subscript", label: "Subscript", icon: <TextSubscript />, active: snapshot.subscript, run: () => editor.chain().focus().toggleSubscript().run() },
-    { id: "superscript", label: "Superscript", icon: <TextSuperscript />, active: snapshot.superscript, run: () => editor.chain().focus().toggleSuperscript().run() },
-    { id: "quote", label: "Quote", icon: <Quotes />, active: snapshot.blockquote, run: () => editor.chain().focus().toggleBlockquote().run() },
-    { id: "codeblock", label: "Code block", icon: <Code />, active: snapshot.codeBlock, run: () => editor.chain().focus().toggleCodeBlock().run() },
+    { id: "subscript", label: "Subscript", icon: <Subscript size={16} />, active: snapshot.subscript, run: () => editor.chain().focus().toggleSubscript().run() },
+    { id: "superscript", label: "Superscript", icon: <Superscript size={16} />, active: snapshot.superscript, run: () => editor.chain().focus().toggleSuperscript().run() },
+    { id: "quote", label: "Quote", icon: <Quote size={16} />, active: snapshot.blockquote, run: () => editor.chain().focus().toggleBlockquote().run() },
+    { id: "codeblock", label: "Code block", icon: <Code size={16} />, active: snapshot.codeBlock, run: () => editor.chain().focus().toggleCodeBlock().run() },
   ];
 }
 
@@ -727,7 +711,7 @@ function OverflowRow({ icon, label, checked, disabled, onClick }: {
     >
       <span className="text-muted-foreground [&>svg]:block [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
       <span className="flex-1 text-left">{label}</span>
-      {checked ? <Checkmark aria-label="On" /> : null}
+      {checked ? <Check size={16} aria-label="On" /> : null}
     </button>
   );
 }

@@ -11,9 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@carbon/icons-react": "^11.90.0",
-    "@carbon/react": "^1.117.0",
-    "@ibm/plex": "^6.4.1",
+    "@flyyes/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@tiptap/core": "^3.31.3",
     "@tiptap/extension-character-count": "^3.31.3",
@@ -38,12 +36,11 @@
     "@tiptap/pm": "^3.31.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
-    "clsx": "^2.1.1",
     "dexie": "^4.4.6",
     "docx": "^9.7.2",
+    "lucide-react": "^0.475.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {

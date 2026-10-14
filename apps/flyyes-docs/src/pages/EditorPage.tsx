@@ -1,8 +1,9 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowLeft, Edit, View } from "@carbon/icons-react";
-import { Button, ContentSwitcher, IconSwitch } from "@carbon/react";
+import { ArrowLeft, Eye, Pencil } from "lucide-react";
+import { Button, ToggleGroup, ToggleGroupItem } from "@flyyes/ui";
 import { DocumentPagePreview } from "@/components/DocumentPagePreview";
 import { ExportMenu } from "@/components/ExportMenu";
+import { icon16 } from "@/components/icon16";
 import { ZoomSelect } from "@/components/ZoomSelect";
 import { getLocalDocument, renameLocalDocument, updatePageSetup } from "@/services/documentService";
 import { buildAtPageCss, resolvePageSetup, type ResolvedPageSetup } from "@/services/pageSetupService";
@@ -10,6 +11,7 @@ import type { LocalDocument, PageOrientation } from "@/storage/documentTypes";
 import { logError } from "@/utils/appLogger";
 
 // WHY: Lazy-load heavy TipTap editor + converters so home list loads fast.
+const BackIcon = icon16(ArrowLeft);
 const DocumentEditor = lazy(() =>
   import("@/editor/DocumentEditor").then((module) => ({ default: module.DocumentEditor }))
 );
@@ -122,14 +124,17 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
   if (error && !document) {
     return (
       <div className="fly-page-narrow flex flex-col items-start gap-4">
-        <p className="cds--type-body-01 fly-banner w-full rounded-md bg-muted">{error}</p>
-        <Button kind="tertiary" renderIcon={ArrowLeft} onClick={onBack}>Back</Button>
+        <p className="text-sm fly-banner w-full rounded-md bg-muted">{error}</p>
+        <Button variant="outline" onClick={onBack}>
+          <BackIcon />
+          Back
+        </Button>
       </div>
     );
   }
 
   if (!document) {
-    return <p className="cds--type-body-01 fly-page-narrow text-muted-foreground">Loading…</p>;
+    return <p className="text-sm fly-page-narrow text-muted-foreground">Loading…</p>;
   }
 
   const exportJson = liveJson ?? document.contentJson;
@@ -176,27 +181,33 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
             // stretching — keeps "Last saved" snug next to short titles.
             style={{ width: `${Math.min(64, Math.max(14, titleDraft.length + 2))}ch` }}
           />
-          <span className="cds--type-body-compact-01 hidden text-muted-foreground sm:inline">{status}</span>
+          <span className="text-sm hidden text-muted-foreground sm:inline">{status}</span>
           {/* WHY: Icon switcher for Edit / read-only Pages. Two nested plain
               wrappers: the outer is exactly the zoom's width (w-28) so both
               right edges land on the same line; the inner hugs content width
               and pins right, giving the small-on-top look. (Widths live on
-              plain divs — Carbon's switcher is 100% wide and beats width
+              plain divs — the toggle group is 100% wide and beats width
               utilities placed on itself.) */}
           <div className="fly-push-right w-28">
             <div className="fly-push-right w-fit">
-              <ContentSwitcher
+              <ToggleGroup
+                type="single"
                 size="sm"
-                selectedIndex={viewMode === "edit" ? 0 : 1}
-                onChange={(params) => setViewMode(params.index === 1 ? "pages" : "edit")}
+                value={viewMode}
+                onValueChange={(next) => {
+                  if (next === "edit" || next === "pages") setViewMode(next);
+                }}
+                aria-label="View mode"
               >
-              <IconSwitch name="edit" text="Edit" align="bottom">
-                <Edit />
-              </IconSwitch>
-              <IconSwitch name="pages" text="Pages" align="bottom">
-                <View />
-              </IconSwitch>
-              </ContentSwitcher>
+                <ToggleGroupItem value="edit" aria-label="Edit">
+                  <Pencil size={16} />
+                  <span>Edit</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="pages" aria-label="Pages">
+                  <Eye size={16} />
+                  <span>Pages</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
           </div>
           {/* WHY: Export is a document-level action, not inline editing — it
@@ -213,13 +224,13 @@ export function EditorPage({ documentId, onBack }: EditorPageProperties) {
             />
           ) : null}
         </div>
-        {error ? <p className="cds--type-body-01 fly-banner-sm fly-title-error rounded-md bg-muted">{error}</p> : null}
+        {error ? <p className="text-sm fly-banner-sm fly-title-error rounded-md bg-muted">{error}</p> : null}
       </header>
 
       {/* Center canvas */}
       <main className="flex min-h-0 flex-1 flex-col">
         {viewMode === "edit" ? (
-          <Suspense fallback={<p className="cds--type-body-01 fly-pad-06 text-muted-foreground">Loading editor…</p>}>
+          <Suspense fallback={<p className="text-sm fly-pad-06 text-muted-foreground">Loading editor…</p>}>
             <DocumentEditor
               documentId={document.id}
               initialContentJson={document.contentJson}

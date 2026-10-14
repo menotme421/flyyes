@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
-import { DocumentConfiguration } from "@carbon/icons-react";
-import { IconButton } from "@carbon/react";
+import { FileCog } from "lucide-react";
 import { PageSetupDialog } from "@/components/PageSetupDialog";
 import { ZoomSelect } from "@/components/ZoomSelect";
+import { ToolButton } from "@/editor/ToolButton";
 import type { ResolvedPageSetup } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
 
@@ -52,23 +52,16 @@ export function StatusBar({
   return (
     <div
       aria-label="Document statistics"
-      className="cds--type-body-compact-01 fly-statusbar no-print flex flex-wrap items-center justify-between bg-background text-muted-foreground"
+      className="fly-statusbar no-print flex flex-wrap items-center justify-between bg-background text-sm text-muted-foreground"
     >
       <span>
         {words} words · {characters} characters
       </span>
       <span className="hidden sm:inline">{savedLabel}</span>
       <span className="flex items-center gap-0">
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Page setup (paper presets)"
-          align="top"
-          autoAlign
-          onClick={() => setPageSetupOpen(true)}
-        >
-          <DocumentConfiguration />
-        </IconButton>
+        <ToolButton title="Page setup (paper presets)" onClick={() => setPageSetupOpen(true)}>
+          <FileCog size={16} />
+        </ToolButton>
         <PageSetupDialog
           open={pageSetupOpen}
           onClose={() => setPageSetupOpen(false)}

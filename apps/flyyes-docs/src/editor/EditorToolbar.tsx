@@ -1,23 +1,24 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import {
-  ListBulleted,
-  ListNumbered,
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
   Redo,
-  TextAlignCenter,
-  TextAlignJustify,
-  TextAlignLeft,
-  TextAlignRight,
-  TextBold,
-  TextClearFormat,
-  TextHighlight,
-  TextItalic,
-  TextUnderline,
+  RemoveFormatting,
+  Highlighter,
+  Underline,
   Undo,
-} from "@carbon/icons-react";
-import { Dropdown, IconButton } from "@carbon/react";
+} from "lucide-react";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, WORD_FONT_FAMILIES, WORD_FONT_SIZES } from "@/editor/editorExtensions";
 import { ColorPicker } from "@/components/ColorPicker";
+import { InlineSelect } from "./InlineSelect";
+import { ToolButton } from "./ToolButton";
 import { normalizeVerticalAlignment } from "./tablePropertiesExtension";
 import { isHeaderColumnActive, isHeaderRowActive, isSelectionInTable } from "./tableSelection";
 import {
@@ -33,10 +34,10 @@ import { PANEL_COLLAPSIBLE, resolveToolbarContext, useToolbarOverflow } from "./
 
 // WHY: Ribbon order — history, Styles, Font essentials, Paragraph essentials
 // left (core, always visible); the right cluster swaps by selection (see
-// ContextTools). Rarely-used tools live in the More panel (Carbon
-// text-toolbar overflow pattern) so the bar never scrolls — scrolling would
-// trap Carbon's floating menus inside it. Sizing utilities stay on plain
-// wrapper divs, never on Carbon roots (Carbon's unlayered CSS beats Tailwind
+// ContextTools). Rarely-used tools live in the More panel (text-toolbar
+// overflow pattern) so the bar never scrolls — scrolling would
+// trap floating menus inside it. Sizing utilities stay on plain
+// wrapper divs, never on floating roots (unlayered panel CSS beats Tailwind
 // utilities on the same element).
 
 // WHY: Unset state shows the real family with a (default) tag — "Font" alone
@@ -197,35 +198,24 @@ export function EditorToolbar({
       <div role="group" aria-label="Core tools" className="fly-ribbon-core flex min-w-0 flex-wrap items-center gap-0">
         <div className="flex items-center gap-0">
           <ToolbarButton title="Undo" active={false} onClick={() => editor.chain().focus().undo().run()}>
-            <Undo />
+            <Undo size={16} />
           </ToolbarButton>
           <ToolbarButton title="Redo" active={false} onClick={() => editor.chain().focus().redo().run()}>
-            <Redo />
+            <Redo size={16} />
           </ToolbarButton>
         </div>
 
         <ToolbarSeparator />
 
         <div className="flex flex-wrap items-center gap-0.5 [&>*]:shrink-0">
-          <div className="fly-tight-menu w-28">
-            <Dropdown
+          <div className="w-28">
+            <InlineSelect
               id="paragraph-style"
-              titleText="Paragraph style"
-              hideLabel
-              type="inline"
-              label="Style"
-              size="sm"
+              label="Paragraph style"
+              value={toolbarState.headingLevel ? `Heading ${toolbarState.headingLevel}` : "Normal text"}
+              displayValue={toolbarState.headingLevel ? `H${toolbarState.headingLevel}` : "Normal"}
               items={PARAGRAPH_STYLES}
-              selectedItem={
-                toolbarState.headingLevel ? `Heading ${toolbarState.headingLevel}` : "Normal text"
-              }
-              // WHY: Compact trigger saves ~40px — menu keeps full
-              // "Normal text / Heading N", bar shows "Normal / H1..H6".
-              renderSelectedItem={(item) => (
-                <span>{item === "Normal text" ? "Normal" : item.replace("Heading ", "H")}</span>
-              )}
-              onChange={(data) => {
-                const style = data.selectedItem;
+              onChange={(style) => {
                 if (style === "Normal text" || !style) editor.chain().focus().setParagraph().run();
                 else {
                   const level = Number(style.replace("Heading ", "")) as 1 | 2 | 3 | 4 | 5 | 6;
@@ -235,50 +225,40 @@ export function EditorToolbar({
             />
           </div>
           {/* Compact trigger (short family name); roomy menu fits full names. */}
-          <div className="fly-roomy-menu-lg w-24">
-            <Dropdown
+          <div className="w-24">
+            <InlineSelect
               id="font-family"
-              titleText="Font family"
-              hideLabel
-              type="inline"
-              label="Font"
-              size="sm"
+              label="Font family"
+              value={currentFontFamily ?? FONT_UNSET_LABEL}
+              displayValue={shortTriggerLabel(currentFontFamily ?? FONT_UNSET_LABEL)}
               items={[FONT_UNSET_LABEL, ...WORD_FONT_FAMILIES]}
-              selectedItem={currentFontFamily ?? FONT_UNSET_LABEL}
-              renderSelectedItem={(item) => <span>{shortTriggerLabel(item)}</span>}
-              onChange={(data) => {
-                const font = data.selectedItem;
+              onChange={(font) => {
                 if (!font || font === FONT_UNSET_LABEL) editor.chain().focus().unsetFontFamily().run();
                 else editor.chain().focus().setFontFamily(font).run();
               }}
             />
           </div>
-          <div className="fly-roomy-menu-md w-20">
-            <Dropdown
+          <div className="w-20">
+            <InlineSelect
               id="font-size"
-              titleText="Font size"
-              hideLabel
-              type="inline"
-              label="Size"
-              size="sm"
+              label="Font size"
+              value={currentFontSize ? currentFontSize.replace("px", "") : SIZE_UNSET_LABEL}
+              displayValue={shortTriggerLabel(currentFontSize ? currentFontSize.replace("px", "") : SIZE_UNSET_LABEL)}
               items={[SIZE_UNSET_LABEL, ...WORD_FONT_SIZES.map((size) => size.replace("px", ""))]}
-              selectedItem={currentFontSize ? currentFontSize.replace("px", "") : SIZE_UNSET_LABEL}
-              renderSelectedItem={(item) => <span>{shortTriggerLabel(item)}</span>}
-              onChange={(data) => {
-                const size = data.selectedItem;
+              onChange={(size) => {
                 if (!size || size === SIZE_UNSET_LABEL) editor.chain().focus().unsetFontSize().run();
                 else editor.chain().focus().setFontSize(`${size}px`).run();
               }}
             />
           </div>
           <ToolbarButton title="Bold (Ctrl+B)" active={toolbarState.bold} onClick={() => editor.chain().focus().toggleBold().run()}>
-            <TextBold />
+            <Bold size={16} />
           </ToolbarButton>
           <ToolbarButton title="Italic (Ctrl+I)" active={toolbarState.italic} onClick={() => editor.chain().focus().toggleItalic().run()}>
-            <TextItalic />
+            <Italic size={16} />
           </ToolbarButton>
           <ToolbarButton title="Underline (Ctrl+U)" active={toolbarState.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}>
-            <TextUnderline />
+            <Underline size={16} />
           </ToolbarButton>
           <ColorPicker
             title="Text color"
@@ -287,10 +267,11 @@ export function EditorToolbar({
             // Commands apply to the stored selection while unfocused.
             onSelect={(hex) => editor.chain().setColor(hex).run()}
           >
-            <IconButton kind="ghost" size="sm" label="Text color" align="bottom" autoAlign>
+            {/* WHY: No onClick — ColorPicker's own wrapper toggles; this
+                keeps tooltip + keyboard focus on the trigger. */}
+            <ToolButton title="Text color">
               {/* WHY: Word-style current-color bar under the icon (not a tinted
-                  icon) so the chosen color reads at a glance. The A itself is
-                  pinned to foreground — ghost buttons tint text link-blue. */}
+                  icon) so the chosen color reads at a glance. */}
               <span className="flex flex-col items-center leading-none">
                 <span className="text-sm font-bold text-foreground">A</span>
                 <span
@@ -299,27 +280,27 @@ export function EditorToolbar({
                   style={{ backgroundColor: toolbarState.textColor }}
                 />
               </span>
-            </IconButton>
+            </ToolButton>
           </ColorPicker>
           <ColorPicker
             title="Highlight color"
             value={toolbarState.highlightColor}
             onSelect={(hex) => editor.chain().toggleHighlight({ color: hex }).run()}
           >
-            <IconButton kind="ghost" size="sm" label="Highlight color" align="bottom" autoAlign>
+            <ToolButton title="Highlight color">
               <span className="flex flex-col items-center leading-none">
-                <TextHighlight className="h-4 w-4" />
+                <Highlighter className="h-4 w-4" />
                 <span
                   aria-hidden="true"
                   className="fly-color-bar h-1 w-4 rounded-sm"
                   style={{ backgroundColor: toolbarState.highlightColor ?? "transparent" }}
                 />
               </span>
-            </IconButton>
+            </ToolButton>
           </ColorPicker>
           {/* WHY: Clear formatting lives next to styling so reset is one click. */}
           <ToolbarButton title="Clear formatting" active={false} onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}>
-            <TextClearFormat />
+            <RemoveFormatting size={16} />
           </ToolbarButton>
         </div>
 
@@ -327,22 +308,22 @@ export function EditorToolbar({
 
         <div className="flex items-center gap-0 [&>*]:shrink-0">
           <ToolbarButton title="Align left" active={toolbarState.alignLeft} onClick={() => editor.chain().focus().setTextAlign("left").run()}>
-            <TextAlignLeft />
+            <AlignLeft size={16} />
           </ToolbarButton>
           <ToolbarButton title="Align center" active={toolbarState.alignCenter} onClick={() => editor.chain().focus().setTextAlign("center").run()}>
-            <TextAlignCenter />
+            <AlignCenter size={16} />
           </ToolbarButton>
           <ToolbarButton title="Align right" active={toolbarState.alignRight} onClick={() => editor.chain().focus().setTextAlign("right").run()}>
-            <TextAlignRight />
+            <AlignRight size={16} />
           </ToolbarButton>
           <ToolbarButton title="Justify" active={toolbarState.alignJustify} onClick={() => editor.chain().focus().setTextAlign("justify").run()}>
-            <TextAlignJustify />
+            <AlignJustify size={16} />
           </ToolbarButton>
           <ToolbarButton title="Bullet list" active={toolbarState.bulletList} onClick={() => editor.chain().focus().toggleBulletList().run()}>
-            <ListBulleted />
+            <List size={16} />
           </ToolbarButton>
           <ToolbarButton title="Numbered list" active={toolbarState.orderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-            <ListNumbered />
+            <ListOrdered size={16} />
           </ToolbarButton>
           <LinkButton
             editor={editor}
@@ -406,13 +387,11 @@ function ToolbarButton({ title, active, onClick, children }: {
   onClick: () => void;
   children: React.ReactNode;
 }) {
-  // WHY: Carbon IconButton carries its own tooltip (label) + selected state —
-  // no wrapper needed. Tooltip appears below like the old custom one.
-  // autoAlign flips edge tooltips (right-edge buttons) back on screen.
+  // WHY: Shared tooltip + pressed chrome (see ToolButton) — no wrapper needed.
   return (
-    <IconButton kind="ghost" size="sm" label={title} align="bottom" autoAlign isSelected={active} onClick={onClick}>
+    <ToolButton title={title} active={active} onClick={onClick}>
       {children}
-    </IconButton>
+    </ToolButton>
   );
 }
 

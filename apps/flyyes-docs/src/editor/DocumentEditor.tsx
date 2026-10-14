@@ -178,7 +178,7 @@ export function DocumentEditor({
   }, []);
 
   if (!editor) {
-    return <p className="cds--type-body-01 fly-pad-06 text-muted-foreground">Loading editor…</p>;
+    return <p className="text-sm fly-pad-06 text-muted-foreground">Loading editor…</p>;
   }
 
   return (

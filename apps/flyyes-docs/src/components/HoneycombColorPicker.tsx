@@ -1,7 +1,16 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Information } from "@carbon/icons-react";
-import { Button, IconButton, Modal, TextInput } from "@carbon/react";
+import { Info } from "lucide-react";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+} from "@flyyes/ui";
+import { ToolButton } from "@/editor/ToolButton";
 import {
   buildGrayscale,
   buildHoneycomb,
@@ -242,17 +251,15 @@ export function HoneycombColorPicker({
       <div className="relative">
         {/* WHY: Info icon floats over the wheel's empty top-right corner —
             the top row is only 7 cells wide, so no colors hide beneath it. */}
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Color details"
+        <ToolButton
+          title="Color details"
           className="absolute top-0 right-0 z-10 bg-background/80"
           onClick={() => {
             setInspectorOpen(true);
           }}
         >
-          <Information />
-        </IconButton>
+          <Info size={16} />
+        </ToolButton>
         <svg
           ref={svgReference}
           viewBox={`${minVx} ${minVy} ${maxVx - minVx} ${maxVy - minVy}`}
@@ -370,11 +377,11 @@ export function HoneycombColorPicker({
       </div>
 
       <div className="flex items-center gap-2">
-        <TextInput
+        <Label htmlFor="honeycomb-hex" className="sr-only">
+          Custom hex color
+        </Label>
+        <Input
           id="honeycomb-hex"
-          labelText="Custom hex color"
-          hideLabel
-          size="sm"
           value={hexDraft}
           onChange={(event) => setHexDraft(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") handleHexApply(); }}
@@ -382,13 +389,17 @@ export function HoneycombColorPicker({
           title="Type a hex color — Enter snaps to closest"
           maxLength={7}
           className="font-mono uppercase"
-          invalid={hexError !== null}
-          invalidText={hexError ?? ""}
+          aria-invalid={hexError !== null}
         />
-        <Button kind="primary" size="sm" onClick={handleHexApply}>
+        <Button variant="default" size="sm" onClick={handleHexApply}>
           Apply
         </Button>
       </div>
+      {hexError ? (
+          <p role="alert" className="text-xs text-destructive">
+          {hexError}
+        </p>
+      ) : null}
 
       <InspectorDialog
         open={inspectorOpen}
@@ -424,37 +435,35 @@ function InspectorDialog({ open, onClose, selectedHex, h, s, l, rgb, hsv, cmyk, 
   harmonies: Array<{ kind: HarmonyKind; label: string; hues: number[] }>;
   onSelect: (hex: string) => void;
 }) {
-  // WHY: Mounted only while open, AND portaled to document.body. This dialog
-  // lives inside the color popover, whose floating-ui transform would
-  // otherwise (a) re-anchor the closed-but-mounted overlay and blow out page
-  // width, (b) hide the open dialog inside display:none when the popover
-  // closes, and (c) drag the open dialog off-center. The portal answers to
-  // the viewport, so none of those apply.
-  if (!open) return null;
-  return createPortal(
-    <Modal
+  // WHY: Mounted only while open — ui Dialog portals to the body, so the
+  // popover transform can never clip or displace it. Passive: no footer.
+  return (
+    <Dialog
       open={open}
-      passiveModal
-      size="md"
-      modalHeading="Color details"
-      modalLabel="Formats, contrast, and harmonies."
-      onRequestClose={onClose}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
     >
-      <ColorInspector
-        selectedHex={selectedHex}
-        h={h}
-        s={s}
-        l={l}
-        rgb={rgb}
-        hsv={hsv}
-        cmyk={cmyk}
-        ratioWhite={ratioWhite}
-        ratioBlack={ratioBlack}
-        harmonies={harmonies}
-        onSelect={onSelect}
-      />
-    </Modal>,
-    document.body
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Color details</DialogTitle>
+          <DialogDescription>Formats, contrast, and harmonies.</DialogDescription>
+        </DialogHeader>
+        <ColorInspector
+          selectedHex={selectedHex}
+          h={h}
+          s={s}
+          l={l}
+          rgb={rgb}
+          hsv={hsv}
+          cmyk={cmyk}
+          ratioWhite={ratioWhite}
+          ratioBlack={ratioBlack}
+          harmonies={harmonies}
+          onSelect={onSelect}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
 

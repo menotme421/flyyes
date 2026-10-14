@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { Checkmark } from "@carbon/icons-react";
-import { ContentSwitcher, Modal, Switch } from "@carbon/react";
+import { Check } from "lucide-react";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  ToggleGroup,
+  ToggleGroupItem,
+  cn,
+} from "@flyyes/ui";
 import { PAGE_PRESETS, findPreset, type PaperPreset } from "@/services/pageSetupService";
 import type { PageOrientation } from "@/storage/documentTypes";
-import { mergeClassNames } from "@/lib/utils";
 
 // WHY: Two-column page setup — controls left, live preview right. Paper tabs
 // stay full-width on top; orientation is orthogonal (any paper goes
@@ -57,27 +66,23 @@ export function PageSetupDialog({
     }
   };
 
-  // WHY: Portaled to document.body (and mounted only while open) — this
-  // dialog lives inside the sticky ribbon, whose stacking context would
-  // otherwise trap the fixed overlay below the title row (top visibly cut
-  // off). Same treatment as the color UrlDialogs.
-  if (!open) return null;
-  return createPortal(
-    <Modal
+  // WHY: Dialog stays mounted and follows `open` — exit animation and
+  // focus restore behave, and the reseed effect below still resets picks.
+  // (Unmounted-while-closed would skip both.)
+  return (
+    <Dialog
       open={open}
-      size="md"
-      hasScrollingContent
-      modalHeading="Page setup"
-      modalLabel="Saved per document · applies to edit, preview, print, and Word export"
-      primaryButtonText="Apply"
-      secondaryButtonText="Cancel"
-      onRequestSubmit={() => {
-        onSave(selectedMargin.id, orientation);
-        onClose();
+      onOpenChange={(next) => {
+        if (!next) onClose();
       }}
-      onSecondarySubmit={onClose}
-      onRequestClose={onClose}
     >
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Page setup</DialogTitle>
+          <DialogDescription>
+            Saved per document · applies to edit, preview, print, and Word export
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Paper tabs */}
         <div role="tablist" aria-label="Paper size" className="flex items-center gap-5">
@@ -91,7 +96,7 @@ export function PageSetupDialog({
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => handleTabChange(tab)}
-                className={mergeClassNames(
+                className={cn(
                   "fly-paper-tab text-base transition-colors",
                   isActive
                     ? "is-active font-medium text-foreground"
@@ -108,19 +113,22 @@ export function PageSetupDialog({
           {/* Left: controls */}
           <div className="flex min-w-0 flex-col gap-4">
             <section aria-label="Orientation">
-              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Orientation</h3>
-              <ContentSwitcher
+              <h3 className="fly-section-label text-xs text-muted-foreground">Orientation</h3>
+              <ToggleGroup
+                type="single"
                 size="sm"
-                selectedIndex={orientation === "portrait" ? 0 : 1}
-                onChange={(params) => setOrientation(params.index === 1 ? "landscape" : "portrait")}
+                value={orientation}
+                onValueChange={(next) => {
+                  if (next === "portrait" || next === "landscape") setOrientation(next);
+                }}
               >
-                <Switch name="portrait" text="Portrait" />
-                <Switch name="landscape" text="Landscape" />
-              </ContentSwitcher>
+                <ToggleGroupItem value="portrait">Portrait</ToggleGroupItem>
+                <ToggleGroupItem value="landscape">Landscape</ToggleGroupItem>
+              </ToggleGroup>
             </section>
 
             <section aria-label="Margins">
-              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Margins</h3>
+              <h3 className="fly-section-label text-xs text-muted-foreground">Margins</h3>
               <div role="radiogroup" aria-label={`${activeGroup.paperLabel} margin presets`} className="flex flex-col gap-1.5">
                 {visibleMargins.map((preset) => {
                   const isSelected = preset.id === selectedMargin.id;
@@ -131,7 +139,7 @@ export function PageSetupDialog({
                       role="radio"
                       aria-checked={isSelected}
                       onClick={() => setSelectedMarginId(preset.id)}
-                      className={mergeClassNames(
+                      className={cn(
                         "fly-margin-row flex items-center gap-3 rounded-md text-left transition-colors",
                         isSelected
                           ? "border-primary bg-accent"
@@ -140,11 +148,11 @@ export function PageSetupDialog({
                     >
                       <MarginThumb preset={preset} />
                       <span className="min-w-0 flex-1">
-                        <span className="cds--type-body-compact-02 flex items-center gap-1.5">
+                        <span className="flex items-center gap-1.5 text-sm">
                           {preset.name}
-                          {isSelected ? <Checkmark className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
+                          {isSelected ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
                         </span>
-                        <span className="cds--type-body-compact-01 block truncate text-muted-foreground" title={preset.useCases.join(" · ")}>
+                        <span className="block truncate text-sm text-muted-foreground" title={preset.useCases.join(" · ")}>
                           {preset.useCases.join(" · ")}
                         </span>
                       </span>
@@ -157,7 +165,7 @@ export function PageSetupDialog({
 
           {/* Right: live preview */}
           <section aria-label="Preview" className="min-w-0 order-first md:order-none">
-              <h3 className="cds--type-label-01 fly-section-label text-muted-foreground">Preview</h3>
+              <h3 className="fly-section-label text-xs text-muted-foreground">Preview</h3>
           {/* WHY: Width-capped (not height-capped) so the aspect ratio can
               never distort — height follows from width. 200px keeps the whole
               dialog, footer included, above the fold on short viewports. */}
@@ -167,16 +175,31 @@ export function PageSetupDialog({
                 heightMm={orientation === "landscape" ? previewPreset.widthMm : previewPreset.heightMm}
                 margins={previewPreset.margins}
               />
-              <p className="cds--type-label-01 fly-caption text-center text-muted-foreground">
+              <p className="fly-caption text-center text-xs text-muted-foreground">
                 {previewPreset.widthMm} × {previewPreset.heightMm} mm ·{" "}
                 {orientation === "landscape" ? "Landscape" : "Portrait"}
               </p>
-              <p className="cds--type-label-01 text-center text-muted-foreground">{describeMargins(previewPreset.margins)}</p>
+              <p className="text-center text-xs text-muted-foreground">{describeMargins(previewPreset.margins)}</p>
             </div>
           </section>
         </div>
-    </Modal>,
-    document.body
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => {
+              onSave(selectedMargin.id, orientation);
+              onClose();
+            }}
+          >
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

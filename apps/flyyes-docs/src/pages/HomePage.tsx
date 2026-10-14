@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Add } from "@carbon/icons-react";
-import { Button } from "@carbon/react";
+import { Button } from "@flyyes/ui";
 import { DocumentCard } from "@/components/DocumentCard";
+import { PageShell } from "@flyyes/ui";
 import { createLocalDocument, deleteDocumentForever, listLocalDocuments, renameLocalDocument } from "@/services/documentService";
 import type { LocalDocument } from "@/storage/documentTypes";
 import { logError } from "@/utils/appLogger";
@@ -76,21 +76,22 @@ export function HomePage({ onOpenDocument }: HomePageProperties) {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageLimit));
 
   return (
+    <PageShell>
     <div className="fly-page">
-      {notice ? <p className="cds--type-body-01 fly-banner fly-notice rounded-md bg-muted">{notice}</p> : null}
+      {notice ? <p className="text-sm fly-banner fly-notice rounded-md bg-muted">{notice}</p> : null}
 
       {/* WHY: Real page head — heading + count + New action — so the grid
           reads as a page, not cards stranded in a corner. */}
       <div className="fly-page-head">
         <div>
-          <h1 className="cds--type-heading-03">Documents</h1>
-          <p className="cds--type-body-compact-01 text-muted-foreground">
+          <h1 className="font-heading text-xl font-semibold">Documents</h1>
+          <p className="text-sm text-muted-foreground">
             {totalCount === 0
               ? "Stored in this browser"
               : `${totalCount} document${totalCount === 1 ? "" : "s"} · stored in this browser`}
           </p>
         </div>
-        <Button kind="primary" size="md" renderIcon={Add} onClick={() => void handleCreate()}>
+        <Button size="default" onClick={() => void handleCreate()}>
           New document
         </Button>
       </div>
@@ -101,9 +102,9 @@ export function HomePage({ onOpenDocument }: HomePageProperties) {
           onClick={() => void handleCreate()}
           aria-label="New document"
           title="New document"
-          className="fly-swatch flex aspect-[210/297] items-center justify-center bg-white text-black transition-colors hover:border-ring hover:bg-muted"
+          className="fly-swatch flex aspect-[210/297] items-center justify-center border border-dashed border-border bg-muted text-4xl leading-none text-primary transition-colors hover:bg-accent"
         >
-          <Add size={32} />
+          <span aria-hidden="true">+</span>
         </button>
         {documents.map((doc) => (
           <DocumentCard
@@ -117,24 +118,25 @@ export function HomePage({ onOpenDocument }: HomePageProperties) {
       </div>
 
       {totalCount === 0 ? (
-        <p className="cds--type-body-01 fly-empty text-center text-muted-foreground">
+        <p className="text-sm fly-empty text-center text-muted-foreground">
           No documents yet. Tap + to create your first one — it stays in this browser.
         </p>
       ) : null}
 
       {totalPages > 1 ? (
-        <div className="cds--type-body-01 fly-pagination flex items-center justify-between text-muted-foreground">
+        <div className="text-sm fly-pagination flex items-center justify-between text-muted-foreground">
           <span>{totalCount} total · page {page}/{totalPages}</span>
           <div className="flex gap-2">
-            <Button kind="tertiary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
               Prev
             </Button>
-            <Button kind="tertiary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
               Next
             </Button>
           </div>
         </div>
       ) : null}
     </div>
+    </PageShell>
   );
 }

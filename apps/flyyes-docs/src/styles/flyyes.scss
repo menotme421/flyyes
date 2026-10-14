@@ -1,46 +1,36 @@
-// WHY: App layout classes that Tailwind utilities CANNOT express here.
-// Carbon's unlayered reset (margin/padding/border 0 on nearly everything)
-// always beats Tailwind's layered utilities, so every m-*/p-*/border-width
-// utility in the app is dead. These unlayered classes win instead, built on
-// Carbon spacing tokens. Non-competing utilities (flex, grid, gap, widths on
-// plain divs, colors, rounding) stay as Tailwind classes in markup.
-// FUTURE: carbon-theme — only the .fly-page* frames, .fly-banner*,
-// .fly-title-row* chrome below are brand-shared; editor canvas rules
-// (.word-page, .page-spacer, .page-sheet) stay in the docs app.
-
-@use "@carbon/react/scss/spacing" as spacing;
+// WHY: App layout classes for what plain utilities can't express.
+// Spacing comes from the shared scale constants (var(--spacing-*)).
 
 // ---------- Page frames ----------
 
-// WHY: Centered reading container (home). margin-inline MUST live here —
-// mx-auto is dead under Carbon's reset, which stranded the page at x=0.
+// WHY: Centered reading container (home).
 .fly-page {
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  padding: spacing.$spacing-05;
+  padding: var(--spacing-05);
 
   @media (min-width: 640px) {
-    padding: spacing.$spacing-06;
+    padding: var(--spacing-06);
   }
 }
 
 .fly-page-narrow {
   max-width: 48rem;
   margin-inline: auto;
-  padding: spacing.$spacing-06;
+  padding: var(--spacing-06);
 }
 
 .fly-page-xs {
   max-width: 36rem;
   margin-inline: auto;
-  padding: spacing.$spacing-07;
+  padding: var(--spacing-07);
   text-align: center;
 }
 
 .fly-error-button {
-  margin-top: spacing.$spacing-05;
-  padding: spacing.$spacing-03 spacing.$spacing-05;
+  margin-top: var(--spacing-05);
+  padding: var(--spacing-03) var(--spacing-05);
 }
 
 // WHY: Page head — heading + count left, action pinned to the row end.
@@ -49,40 +39,40 @@
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
-  gap: spacing.$spacing-04;
-  margin-bottom: spacing.$spacing-05;
+  gap: var(--spacing-04);
+  margin-bottom: var(--spacing-05);
 }
 
 .fly-banner {
   border: 1px solid var(--border);
-  padding: spacing.$spacing-04;
+  padding: var(--spacing-04);
 }
 
 .fly-banner-sm {
   border: 1px solid var(--border);
-  padding: spacing.$spacing-03;
+  padding: var(--spacing-03);
 }
 
 .fly-notice {
-  margin-bottom: spacing.$spacing-04;
+  margin-bottom: var(--spacing-04);
 }
 
 .fly-pagination {
-  margin-top: spacing.$spacing-06;
+  margin-top: var(--spacing-06);
 }
 
 .fly-empty {
-  margin-top: spacing.$spacing-06;
+  margin-top: var(--spacing-06);
 }
 
 .fly-pad-06 {
-  padding: spacing.$spacing-06;
+  padding: var(--spacing-06);
 }
 
 // ---------- Editor chrome ----------
 
 .fly-title-row {
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  padding: var(--spacing-02) var(--spacing-03);
 }
 
 .fly-title-row-bordered {
@@ -90,15 +80,12 @@
 }
 
 .fly-title-error {
-  margin: 0 spacing.$spacing-05 spacing.$spacing-03;
+  margin: 0 var(--spacing-05) var(--spacing-03);
 }
 
 .fly-title-input {
-  // WHY: Width + style only for the resting border; colors (resting
-  // transparent, hover, focus) live here too — layered border-color
-  // utilities would lose to any unlayered color.
   border: 1px solid transparent;
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  padding: var(--spacing-02) var(--spacing-03);
 
   &:hover {
     border-color: var(--input);
@@ -111,45 +98,37 @@
 
 .fly-ribbon {
   // WHY: Left-aligned flexbox row — both clusters pack left in content order
-  // with no fixed split, so any leftover blank space sits at the far right
-  // end of the bar. display + align live here (not Tailwind) so the row
-  // holds even where Carbon's reset beats layered utilities.
+  // with no fixed split, so any leftover blank space sits at the far right.
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
   // WHY: Same 8px side padding as the title row above, so undo aligns under
-  // the title and the overflow menu aligns under Export — balanced edges
-  // instead of tools glued to the screen sides.
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  // the title and the overflow menu aligns under Export.
+  padding: var(--spacing-02) var(--spacing-03);
 }
 
 .fly-ribbon-bar {
   // WHY: Vertical padding only — the inner toolbar carries the 8px sides.
-  // (An earlier version padded both layers and every ribbon control sat
-  // 12px left of its title-row counterpart.)
   border-bottom: 1px solid var(--border);
-  padding-block: spacing.$spacing-03;
+  padding-block: var(--spacing-03);
 }
 
 .fly-viewbar {
   // WHY: Same 8px sides as the title row and ribbon, so the zoom lines up
   // with the view switcher above it in Pages mode.
   border-bottom: 1px solid var(--border);
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  padding: var(--spacing-02) var(--spacing-03);
 }
 
 .fly-separator {
   align-self: stretch;
-  // WHY: Tight dividers for the compact bar — 8px each side read as empty
-  // gaps in the screenshot, 4px keeps groups scannable without waste.
-  margin-inline: spacing.$spacing-02;
+  // WHY: Tight dividers for the compact bar — 4px keeps groups scannable.
+  margin-inline: var(--spacing-02);
   border-left: 1px solid var(--border);
 }
 
 // WHY: Left-aligned neighbors — both clusters size to their content and sit
-// directly beside each other (no basis split, no margin-left auto gap).
-// Leftover blank space falls at the far right end of the bar. The
-// Secondary left divider hugs its cluster instead of floating mid-gap.
+// directly beside each other. Leftover blank space falls at the far right.
 .fly-ribbon-core {
   flex: 0 1 auto;
   min-width: 0;
@@ -161,14 +140,13 @@
   margin-left: 0;
   justify-content: flex-start;
   border-left: 1px solid var(--border);
-  padding-left: spacing.$spacing-02;
+  padding-left: var(--spacing-02);
   background: transparent;
 }
 
 // WHY: Right-zone reveal animation — rise from below + fade, 160ms
-// (within the 150-200ms motion budget) so the panel change reads without
-// feeling slow. key={context} remounts replays it per swap; reduced-motion
-// users get an instant swap instead.
+// (within the 150-200ms motion budget). key={context} remounts replays it
+// per swap; reduced-motion users get an instant swap instead.
 .fly-context-swap {
   animation: fly-context-in 160ms ease;
 }
@@ -193,205 +171,63 @@
 
 .fly-statusbar {
   border-top: 1px solid var(--border);
-  padding: spacing.$spacing-02 spacing.$spacing-05;
+  padding: var(--spacing-02) var(--spacing-05);
 }
 
-// WHY: Pushes a flex item to the row end — ml-auto is dead (margin reset).
+// WHY: Pushes a flex item to the row end.
 .fly-push-right {
   margin-inline-start: auto;
 }
 
-// WHY: Brand wordmark in the shell header — fixed 22px height keeps the 48px
-// Carbon header balanced. The light asset's glyphs were recolored to
-// near-white in the file itself (an <img> SVG is a separate document — page
-// CSS can never reach inside it, so stylesheet recoloring is impossible).
-// The lockup pins logo + Docs side by side; prefix="" kills Carbon's
-// default "IBM" prefix.
-.fly-brand-logo {
-  display: block;
-  height: 22px;
-  width: auto;
-}
-
-// WHY: Header action cluster pinned to the bar's right end — margin-start
-// auto is the push (ml-auto is dead under Carbon's reset). Gap + side
-// padding in tokens; ghost buttons carry their own dark-theme colors.
-.fly-header-actions {
-  display: flex;
-  align-items: center;
-  gap: spacing.$spacing-02;
-  margin-inline-start: auto;
-  padding-right: spacing.$spacing-03;
-}
-
-.fly-brand-lockup {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-// WHY: Carbon wraps header-name children in its own block span — row the
-// logo and Docs inside it too, or Docs drops below the mark. Baseline (not
-// center) alignment: both names share one text baseline, which is the only
-// alignment that stays true across the serif/sans x-height mismatch — no
-// pixel nudges to maintain.
-.fly-brand-lockup > span {
-  display: flex;
-  align-items: baseline;
-}
-
-// WHY: Serif lives only in the Flyyes mark image — Docs stays in the
-// standard Carbon face (body-02, 16px Plex Sans) so the lockup reads as
-// brand + app name, not two competing serifs. Only the non-tokenizable bits
-// stay custom: an 8px spacing token gap and a 1px optical lift.
-// WHY: Brand wordmark set in Plex Serif Regular (Carbon's documented serif
-// stack for brand moments) — no SVG assets, no image requests, crisp at any
-// size or zoom. Single weight on purpose; the bundler must emit
-// IBMPlexSerif-Regular.woff2 into dist or this rule silently falls back.
-@font-face {
-  font-family: "Flyyes Brand Serif";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("@ibm/plex/IBM-Plex-Serif/fonts/complete/woff2/IBMPlexSerif-Regular.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Flyyes Brand Serif";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("@ibm/plex/IBM-Plex-Serif/fonts/complete/woff2/IBMPlexSerif-SemiBold.woff2") format("woff2");
-}
-
-// WHY: One family, two weights — 18px SemiBold platform name beside 18px
-// Regular product name. Same size (user call); hierarchy comes from weight
-// contrast alone.
-.fly-brand-name {
-  font-family: "Flyyes Brand Serif", "IBM Plex Serif", Georgia, serif;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.fly-brand-docs {
-  // WHY: Same 18px step as the mark (user call) — hierarchy now comes from
-  // serif-vs-sans voice contrast alone, not size.
-  font-size: 18px;
-  margin-left: spacing.$spacing-03;
-}
-
-// WHY: Narrow trigger, full menu. Carbon locks menu width to trigger width
-// (list-box__menu is inset-inline: 0), so short trigger labels would clip
-// long menu labels. These min-widths let the menu outgrow its trigger
-// rightward instead. Exception to the no-cds-internals rule, explicitly
-// confirmed by the user — contained to menu width only.
-.fly-roomy-menu-lg .cds--list-box__menu {
-  min-width: 13rem;
-}
-
-.fly-roomy-menu-md .cds--list-box__menu {
-  min-width: 10rem;
-}
-
-// WHY: The reverse — Carbon's *inline* dropdowns force menus to at least
-// 288px wide, absurd for short lists like paragraph styles. This floors it
-// just wide enough for the longest item plus its checkmark space
-// ("Normal text" clips below ~170px).
-.fly-tight-menu .cds--list-box__menu {
-  min-width: 11rem;
-}
-
 // ---------- Menus, panels, rows ----------
-
-.fly-popover-panel {
-  padding: spacing.$spacing-03;
-}
-
-// WHY: Fixed panel width in unlayered CSS — the layered w-52 utility loses
-// to Carbon's max-content sizing, so wide content (the honeycomb) stretched
-// the panel past the viewport instead. The comb then scales to the panel.
-.fly-popover-panel-lg {
-  padding: spacing.$spacing-04;
-  width: 13rem;
-}
-
-.fly-popover-panel-lg svg[role="group"] {
-  width: 100%;
-  max-width: 192px;
-  height: auto;
-  margin-inline: auto;
-}
-
-.fly-submenu-panel {
-  padding: spacing.$spacing-02 spacing.$spacing-04;
-}
 
 .fly-menu-row {
   display: flex;
   width: 100%;
   align-items: center;
-  gap: spacing.$spacing-03;
-  border-radius: 2px;
-  padding: spacing.$spacing-03;
+  gap: var(--spacing-03);
+  border-radius: 0;
+  padding: var(--spacing-03);
 }
 
 .fly-menu-label {
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  padding: var(--spacing-02) var(--spacing-03);
 }
 
-// WHY: Carbon reserves triple trailing padding on ghost/tertiary buttons
-// (room for a trailing icon they don't all have) — a text-only button like
-// "Replace all" gets ~63px of dead padding and its label wraps. This
-// restores symmetric padding + no wrap. Double class wins regardless of
-// stylesheet order.
-.cds--btn.fly-panel-btn {
-  padding-inline-start: spacing.$spacing-03;
-  padding-inline-end: spacing.$spacing-03;
-  white-space: nowrap;
-}
-
-.fly-menu-divider {
-  height: 1px;
-  margin-block: spacing.$spacing-02;
-  background: var(--border);
-}
-
-// WHY: Section captions inside panels/dialogs (replaces mb-1.5/mb-2, dead).
+// WHY: Section captions inside panels/dialogs.
 .fly-section-label {
-  margin-bottom: spacing.$spacing-03;
+  margin-bottom: var(--spacing-03);
 }
 
 .fly-caption {
-  margin-top: spacing.$spacing-03;
+  margin-top: var(--spacing-03);
 }
 
 // ---------- Cards ----------
 
 .fly-compare-strip {
   border-top: 1px solid var(--border);
-  padding-top: spacing.$spacing-03;
+  padding-top: var(--spacing-03);
 }
 
 .fly-card-body {
   border-top: 1px solid var(--border);
-  padding: spacing.$spacing-03;
+  padding: var(--spacing-03);
 }
 
 .fly-card-date {
-  margin-top: spacing.$spacing-01;
+  margin-top: var(--spacing-01);
 }
 
 // WHY: Width + style only — color stays with the border-* utilities so
-// selected/hover variants (primary, ring) keep working: an unlayered color
-// here would beat those layered utilities.
+// selected/hover variants keep working.
 .fly-swatch {
   border-width: 1px;
   border-style: solid;
 }
 
 .fly-color-bar {
-  margin-top: spacing.$spacing-01;
+  margin-top: var(--spacing-01);
   border: 1px solid rgb(0 0 0 / 0.1);
 }
 
@@ -402,11 +238,10 @@
   border-bottom-width: 2px;
   border-bottom-style: solid;
   border-bottom-color: transparent;
-  padding-bottom: spacing.$spacing-03;
+  padding-bottom: var(--spacing-03);
 }
 
-// WHY: Active paper tab — border color lives here (not in a layered
-// border-foreground utility, which would lose to the color above).
+// WHY: Active paper tab — border color lives here.
 .fly-paper-tab.is-active {
   border-bottom-color: var(--foreground);
 }
@@ -414,12 +249,12 @@
 .fly-margin-row {
   border-width: 1px;
   border-style: solid;
-  padding: spacing.$spacing-03;
+  padding: var(--spacing-03);
 }
 
 .fly-preview-box {
   border: 1px solid var(--border);
-  padding: spacing.$spacing-04;
+  padding: var(--spacing-04);
 }
 
 .fly-preview-sheet {
@@ -430,31 +265,27 @@
 
 .fly-search-panel {
   border: 1px solid var(--border);
-  padding: spacing.$spacing-04;
+  padding: var(--spacing-04);
 }
 
 // ---------- Misc one-offs ----------
 
-.fly-dialog-remove {
-  margin-top: spacing.$spacing-04;
-}
-
 .fly-hex-tip {
-  padding: spacing.$spacing-02 spacing.$spacing-03;
+  padding: var(--spacing-02) var(--spacing-03);
 }
 
 .fly-badge {
   // WHY: Width + style only — color stays with the border-* utilities so
-  // variants (primary, destructive…) keep working.
+  // variants keep working.
   border-width: 1px;
   border-style: solid;
-  padding-inline: spacing.$spacing-02;
+  padding-inline: var(--spacing-02);
 }
 
 // ---------- Print & preview chrome ----------
 
 .fly-preview-wrap {
-  padding: spacing.$spacing-06;
+  padding: var(--spacing-06);
 
   @media print {
     padding: 0;
@@ -463,11 +294,11 @@
 
 .fly-preview-head {
   border-bottom: 1px solid var(--border);
-  padding-top: spacing.$spacing-07;
+  padding-top: var(--spacing-07);
 }
 
 .fly-preview-foot {
   border-top: 1px solid var(--border);
-  padding-top: spacing.$spacing-03;
-  padding-bottom: spacing.$spacing-07;
+  padding-top: var(--spacing-03);
+  padding-bottom: var(--spacing-07);
 }

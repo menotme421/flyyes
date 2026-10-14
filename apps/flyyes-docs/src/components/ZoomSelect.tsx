@@ -1,7 +1,6 @@
-import { Dropdown } from "@carbon/react";
-
-// WHY: Compact zoom picker on Carbon Dropdown (Docs keeps zoom in its toolbar
-// too). Screen-only scaling — saved content, export, and print are unaffected.
+// WHY: Native select — single-value picker with full keyboard + screen-reader
+// semantics for free, zero floating-UI risk inside sticky bars. Screen-only
+// scaling — saved content, export, and print are unaffected.
 
 const ZOOM_STEPS = [50, 75, 90, 100, 125, 150, 200] as const;
 
@@ -13,21 +12,26 @@ interface ZoomSelectProperties {
 export function ZoomSelect({ zoomPercent, onZoomChange }: ZoomSelectProperties) {
   return (
     <div className="w-28">
-      <Dropdown
+      <label htmlFor="zoom" className="sr-only">
+        Zoom
+      </label>
+      <select
         id="zoom"
-        titleText="Zoom"
-        hideLabel
-        label="100%"
-        size="sm"
-        items={ZOOM_STEPS.map((step) => `${step}%`)}
-        selectedItem={`${zoomPercent}%`}
-        onChange={(data) => {
-          const parsed = Number.parseInt(data.selectedItem ?? "", 10);
+        value={`${zoomPercent}%`}
+        onChange={(event) => {
+          const parsed = Number.parseInt(event.target.value, 10);
           if (Number.isFinite(parsed)) {
             onZoomChange(Math.min(200, Math.max(50, parsed)));
           }
         }}
-      />
+        className="h-8 w-full rounded-none border border-input bg-transparent px-2 text-xs outline-none"
+      >
+        {ZOOM_STEPS.map((step) => (
+          <option key={step} value={`${step}%`}>
+            {step}%
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

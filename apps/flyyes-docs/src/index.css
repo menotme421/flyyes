@@ -1,93 +1,9 @@
-@import "tailwindcss";
-
-/* WHY: Stock shadcn default theme (zinc base, new-york style, oklch values).
-   Every UI component reads these tokens, so the whole app matches shadcn
-   defaults. Dark variant follows the OS setting (no toggle wired). */
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.141 0.005 285.823);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.21 0.006 285.885);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.92 0.004 286.32);
-    --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.552 0.016 285.938);
-  }
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive: var(--destructive);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-  --font-sans: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-
-body {
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  /* WHY: IBM Plex Sans is the Carbon typeface; Inter + system stack stay as
-     offline fallbacks until the removal phase. */
-  font-family: "IBM Plex Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
+/* WHY: Brand tokens moved to @flyyes/ui (P0/P1). This file keeps app-only
+   rules: shell offset, TipTap canvas, print. No :root / @theme / body here.
+   Backup of the removed zinc theme: index.css.pre-ui-backup. */
 
 #root {
   min-height: 100svh;
-}
-
-/* WHY: Carbon UI shell header is fixed 48px — content starts below it. */
-.shell-content {
-  padding-top: 3rem;
 }
 
 /* WHY: TipTap content needs Word-like defaults. Scoped to .tiptap so toolbar UI is unaffected. */
@@ -327,7 +243,7 @@ body {
 }
 /* WHY: Docs-style image selection (owned ResizableImage node view). 2px blue
    outline flush on the image + solid blue squares: four corners (proportional)
-   plus four edge midpoints (single-axis stretch). Fixed Carbon blue
+   plus four edge midpoints (single-axis stretch). Fixed selection blue
    (#0f62fe, Docs-blue family): the sheet stays white in both OS modes, so one
    color reads everywhere. Handles show only on selection and never print
    (no-print). No rotation dot — rotation has no model yet, and a dead handle
@@ -543,11 +459,10 @@ body {
   body {
     background: #fff !important;
   }
-  /* WHY: Shell header is screen chrome (also no-print) — its 48px content
-     offset must not push the first printed page down. */
-  .shell-content {
-    padding-top: 0 !important;
-  }
+  /* WHY: Screen chrome is no-print — floating UI open when Print fires
+     (menus, selects, dialogs, popovers, tooltips, toasts all render in
+     Radix portals) must never appear on paper, even with the close-delay
+     above. */
   .no-print {
     display: none !important;
   }
@@ -555,7 +470,6 @@ body {
      dialogs, popovers, tooltips, toasts all render in Radix portals) must
      never appear on paper, even with the close-delay above. */
   [data-radix-portal],
-  [data-sonner-toaster],
   [role="dialog"],
   [role="menu"],
   [role="listbox"],
